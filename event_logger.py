@@ -26,20 +26,21 @@ from dataclasses import dataclass
 from typing import Optional
 
 
-# TODO: Copy/paste your A1 event_logger code below, and modify it if needed to fit your game
-
-
 @dataclass
 class Event:
-    """
-    A node representing one event in an adventure game.
+    """A node representing one event in an adventure game.
 
     Instance Attributes:
-    - id_num: Integer id of this event's location
-    - description: Long description of this event's location
-    - next_command: String command which leads this event to the next event, None if this is the last game event
-    - next: Event object representing the next event in the game, or None if this is the last game event
-    - prev: Event object representing the previous event in the game, None if this is the first game event
+        - id_num: Integer ID of this event's location
+        - description: Long description of this event's location
+        - next_command: String command which leads this event to the next event, None if this is the last game event
+        - next: Event object representing the next event in the game, or None if this is the last game event
+        - prev: Event object representing the previous event in the game, None if this is the first game event
+
+    Representation Invariants:
+        - self.id_num >= 0
+        - self.description != ''
+        - (self.next is None) == (self.next_command is None) or self.next_command is None
     """
     id_num: int
     description: str
@@ -49,70 +50,163 @@ class Event:
 
 
 class EventList:
-    """
-    A linked list of game events.
+    """A linked list of game events.
 
     Instance Attributes:
-        - # TODO add descriptions of instance attributes here
+        - first: The first Event in this list, or None if the list is empty
+        - last: The last Event in this list, or None if the list is empty
 
     Representation Invariants:
-        - # TODO add any appropriate representation invariants, if needed
+        - (self.first is None) == (self.last is None)
+        - If self.first is not None, then self.first.prev is None
+        - If self.last is not None, then self.last.next is None
     """
     first: Optional[Event]
     last: Optional[Event]
 
     def __init__(self) -> None:
-        """Initialize a new empty event list."""
+        """Initialize a new empty event list.
 
+        >>> events = EventList()
+        >>> events.first is None
+        True
+        >>> events.last is None
+        True
+        >>> events.is_empty()
+        True
+        """
         self.first = None
         self.last = None
 
-    def display_events(self) -> None:
-        """Display all events in chronological order."""
-        curr = self.first
-        while curr:
-            print(f"Location: {curr.id_num}, Command: {curr.next_command}")
-            curr = curr.next
-
-    # TODO: Complete the methods below, based on the given descriptions.
     def is_empty(self) -> bool:
-        """Return whether this event list is empty."""
+        """Return whether this event list is empty.
 
-        # TODO: Your code below
-
-    def add_event(self, event: Event, command: str = None) -> None:
+        >>> events = EventList()
+        >>> events.is_empty()
+        True
+        >>> events.add_event(Event(1, "Start location"))
+        >>> events.is_empty()
+        False
         """
-        Add the given new event to the end of this event list.
-        The given command is the command which was used to reach this new event, or None if this is the first
-        event in the game.
-        """
-        # Hint: You should update the previous node's <next_command> as needed
+        return self.first is None
 
-        # TODO: Your code below
+    def add_event(self, event: Event, command: Optional[str] = None) -> None:
+        """Add the given new event to the end of this event list.
+
+        The given command is the command which was used to reach this new event,
+        or None if this is the first event in the game.
+
+        >>> events = EventList()
+        >>> event1 = Event(1, "Location 1")
+        >>> events.add_event(event1)
+        >>> events.first.id_num
+        1
+        >>> events.last.id_num
+        1
+        >>> event2 = Event(2, "Location 2")
+        >>> events.add_event(event2, "go north")
+        >>> events.last.id_num
+        2
+        >>> events.first.next_command
+        'go north'
+        >>> events.last.prev.id_num
+        1
+
+        Preconditions:
+            - event is not already in this list
+        """
+        if self.is_empty():
+            # This is the first event
+            self.first = event
+            self.last = event
+            event.prev = None
+            event.next = None
+            event.next_command = None
+        else:
+            # Add to the end of the list
+            self.last.next = event
+            self.last.next_command = command
+            event.prev = self.last
+            event.next = None
+            event.next_command = None
+            self.last = event
 
     def remove_last_event(self) -> None:
-        """
-        Remove the last event from this event list.
-        If the list is empty, do nothing.
-        """
-        # Hint: The <next_command> and <next> attributes for the new last event should be updated as needed
+        """Remove the last event from this event list.
 
-        # TODO: Your code below
+        If the list is empty, do nothing.
+
+        >>> events = EventList()
+        >>> events.remove_last_event()  # Does nothing when empty
+        >>> event1 = Event(1, "Location 1")
+        >>> event2 = Event(2, "Location 2")
+        >>> event3 = Event(3, "Location 3")
+        >>> events.add_event(event1)
+        >>> events.add_event(event2, "go north")
+        >>> events.add_event(event3, "go east")
+        >>> events.last.id_num
+        3
+        >>> events.remove_last_event()
+        >>> events.last.id_num
+        2
+        >>> events.last.next_command is None
+        True
+        >>> events.remove_last_event()
+        >>> events.last.id_num
+        1
+        """
+        if self.is_empty():
+            return
+        elif self.first == self.last:
+            # Only one event in the list
+            self.first = None
+            self.last = None
+        else:
+            # Multiple events in the list
+            new_last = self.last.prev
+            new_last.next = None
+            new_last.next_command = None
+            self.last = new_last
 
     def get_id_log(self) -> list[int]:
-        """Return a list of all location IDs visited for each event in this list, in sequence."""
+        """Return a list of all location IDs visited for each event in this list, in sequence.
 
+        >>> events = EventList()
+        >>> events.add_event(Event(1, "Location 1"))
+        >>> events.add_event(Event(2, "Location 2"), "go east")
+        >>> events.add_event(Event(3, "Location 3"), "go north")
+        >>> events.get_id_log()
+        [1, 2, 3]
+        """
+        result = []
+        curr = self.first
+        while curr is not None:
+            result.append(curr.id_num)
+            curr = curr.next
+        return result
 
-    # Note: You may add other methods to this class as needed
+    def display_events(self) -> None:
+        """Display all events in chronological order."""
+        if self.is_empty():
+            print("No events recorded yet.")
+            return
+
+        print("\n=== EVENT LOG ===")
+        curr = self.first
+        event_num = 1
+        while curr is not None:
+            if curr.next_command is None:
+                print(f"{event_num}. Location {curr.id_num}: {curr.description[:50]}...")
+            else:
+                print(f"{event_num}. Location {curr.id_num}: {curr.description[:50]}... -> Command: {curr.next_command}")
+            curr = curr.next
+            event_num += 1
+        print("=================\n")
 
 
 if __name__ == "__main__":
-    pass
-    # When you are ready to check your work with python_ta, uncomment the following lines.
-    # (Delete the "#" and space before each line.)
-    # IMPORTANT: keep this code indented inside the "if __name__ == '__main__'" block
-    # import python_ta
-    # python_ta.check_all(config={
-    #     'max-line-length': 120,
-    #     'disable': ['R1705', 'E9998', 'E9999', 'static_type_checker']
-    # })
+    import python_ta
+    python_ta.check_all(config={
+        'max-line-length': 120,
+        'disable': ['R1705', 'E9998', 'E9999', 'static_type_checker']
+    })
