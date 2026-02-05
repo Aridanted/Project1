@@ -1,108 +1,418 @@
-\documentclass[11pt]{article}
-\usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{amsthm}
-\usepackage[utf8]{inputenc}
-\usepackage[margin=0.75in]{geometry}
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
 
-\title{CSC111 Winter 2026 Project 1}
-\author{TODO: FILL IN YOUR NAME(S) HERE}
+\title{CSC111 Project 1: Text Adventure Game\\The Missing Items Adventure}
+\author{Student Name}
 \date{\today}
 
 \begin{document}
+
 \maketitle
 
-\section*{Running the game}
-We should be able to run your game by simply running \texttt{adventure.py}. If you have any other requirements (e.g., installing certain modules), describe them here. Otherwise, skip this section.
+\section{How to Run the Game}
 
-\section*{Game Map}
-Example game map below (edit it to show your actual game map):
+To run the game, simply execute the following command in your terminal:
 
 \begin{verbatim}
-  1  2  3
- -1  4 -1
- -1  5 -1
+python adventure.py
 \end{verbatim}
 
-Starting location is: 1
+\textbf{Requirements:}
+\begin{itemize}
+    \item Python 3.13.5
+    \item No additional libraries are required beyond the standard library
+    \item All game files must be in the same directory: \texttt{adventure.py}, \texttt{game\_entities.py}, \texttt{event\_logger.py}, and \texttt{game\_data.json}
+\end{itemize}
 
-\section*{Game solution}
-List of commands:
+\section{Game Map}
 
-\section*{Lose condition(s)}
-Description of how to lose the game:
+The game map consists of 16 locations around the University of Toronto St. George campus. The grid below shows the location IDs arranged spatially:
 
-List of commands:
+\begin{verbatim}
+-1 -1 16 -1 -1
+-1  7 -1 -1 -1
+-1  6 -1 12 -1
+-1  5 -1 11 -1
+13  4 -1 10 -1
+14  2  8  9 -1
+15  3 -1 -1 -1
+-1  1 -1 -1 -1
+\end{verbatim}
 
-Which parts of your code are involved in this functionality:
+\textbf{Starting location:} Location 1 (Dorm Room at Chestnut Residence)
 
-% Copy-paste the above if you have multiple lose conditions and describe each possible way to lose the game
+\textbf{Legend:}
+\begin{itemize}
+    \item Location 1: Dorm Room (Chestnut Residence)
+    \item Location 2: Chestnut Residence Hallway
+    \item Location 3: Chestnut Common Room
+    \item Location 4: St. George Street (outside Chestnut)
+    \item Location 5: Robarts Library Entrance
+    \item Location 6: Robarts Library - First Floor
+    \item Location 7: Robarts Library - Study Rooms (2F)
+    \item Location 8: Bahen Center - Front Entrance
+    \item Location 9: Bahen Center - First Floor
+    \item Location 10: Bahen Center - Third Floor Labs
+    \item Location 11: Bahen Center - Lecture Hall BA3200 (outside)
+    \item Location 12: Lecture Hall BA3200 (inside)
+    \item Location 13: Sidney Smith Hall - Entrance
+    \item Location 14: Sidney Smith Hall - First Floor
+    \item Location 15: Tim Hortons (Sidney Smith)
+    \item Location 16: Gerstein Science Information Centre
+    \item -1: Non-accessible areas
+\end{itemize}
 
-\section*{Inventory}
+\section{Game Solution}
+
+Below is the complete list of commands needed to win the game (in chronological order):
+
+\begin{verbatim}
+go north
+go north
+talk to friend
+go south
+go east
+go north
+go north
+go north
+take usb drive
+go south
+go south
+go south
+go east
+go east
+go north
+go east
+go north
+take laptop charger
+go south
+go west
+go south
+go west
+go south
+go east
+go east
+take lucky mug
+go west
+go west
+go north
+go west
+go west
+go south
+drop usb drive
+drop laptop charger
+drop lucky mug
+\end{verbatim}
+
+\textbf{Note:} Follow these commands exactly as written. The player must first talk to their friend to get permission to enter the lecture hall (Location 12) where the laptop charger is located.
+
+\section{Lose Condition(s)}
+
+\subsection{Primary Lose Condition: Running Out of Moves}
+
+The player loses the game if they make 35 or more moves without winning. This represents running out of time before the 1pm project deadline.
+
+\textbf{Example commands to lose the game:}
+
+\begin{verbatim}
+go north
+go east
+go west
+go east
+go west
+[... repeat going back and forth 35 times ...]
+\end{verbatim}
+
+\textbf{Code Implementation:}
+\begin{itemize}
+    \item \textbf{File:} \texttt{adventure.py}
+    \item \textbf{Constant:} \texttt{MAX\_MOVES = 35} (defined at the top of the file)
+    \item \textbf{Class/Method:} \texttt{Player.moves\_made} attribute in \texttt{game\_entities.py} tracks the number of moves
+    \item \textbf{Class/Method:} \texttt{Player.increment\_moves()} method increments the move counter
+    \item \textbf{Class/Method:} \texttt{AdventureGame.check\_lose\_condition()} method checks if \texttt{player.moves\_made >= MAX\_MOVES}
+    \item \textbf{Class/Method:} \texttt{AdventureGame.handle\_go\_command()} increments moves on successful movement
+\end{itemize}
+
+\section{Inventory}
+
+\subsection{Items in the Game}
+
+The game includes 4 items at various locations:
 
 \begin{enumerate}
-\item All location IDs that involve items in the game:
+    \item \textbf{USB Drive}
+    \begin{itemize}
+        \item Start Location: Location 7 (Robarts Library - Study Rooms 2F)
+        \item Target Location: Location 1 (Dorm Room)
+        \item Points: 5 for pickup, 20 for depositing at target
+    \end{itemize}
+    
+    \item \textbf{Laptop Charger}
+    \begin{itemize}
+        \item Start Location: Location 12 (Lecture Hall BA3200 - Inside)
+        \item Target Location: Location 1 (Dorm Room)
+        \item Points: 5 for pickup, 20 for depositing at target
+    \end{itemize}
+    
+    \item \textbf{Lucky Mug}
+    \begin{itemize}
+        \item Start Location: Location 15 (Tim Hortons)
+        \item Target Location: Location 1 (Dorm Room)
+        \item Points: 5 for pickup, 20 for depositing at target
+    \end{itemize}
+    
+    \item \textbf{toonie}
+    \begin{itemize}
+        \item Start Location: Location 9 (Bahen Center - First Floor)
+        \item Target Location: Location 1 (Dorm Room)
+        \item Points: 1 for pickup, 2 for depositing at target (bonus item)
+    \end{itemize}
+\end{enumerate}
 
-\item Item data:
+\subsection{Example: Picking Up and Using the USB Drive}
+
+Commands to get to the USB Drive and pick it up:
+
+\begin{verbatim}
+go north
+go east
+go north
+go north
+go north
+take usb drive
+inventory
+\end{verbatim}
+
+Commands to use/drop the USB Drive at the dorm room:
+
+\begin{verbatim}
+go south
+go south
+go south
+go west
+go west
+go south
+drop usb drive
+\end{verbatim}
+
+\subsection{Code Implementation}
+
+\begin{itemize}
+    \item \textbf{File:} \texttt{adventure.py}
+    \item \textbf{Class/Method:} \texttt{AdventureGame.handle\_inventory\_command()} displays the player's inventory
+    \item \textbf{Class/Method:} \texttt{AdventureGame.handle\_take\_command(item\_name)} handles picking up items
+    \item \textbf{Class/Method:} \texttt{AdventureGame.handle\_drop\_command(item\_name)} handles dropping items
+    \item \textbf{File:} \texttt{game\_entities.py}
+    \item \textbf{Class:} \texttt{Player} class maintains the \texttt{inventory} attribute (list of Item objects)
+    \item \textbf{Class:} \texttt{Item} class represents each item with attributes including name, description, positions, and points
+\end{itemize}
+
+\section{Score}
+
+\subsection{Scoring System}
+
+Players can earn points in the following ways:
+
+\begin{itemize}
+    \item \textbf{Picking up items:} 5 points for each required item (USB Drive, Laptop Charger, Lucky Mug), 1 point for the bonus toonie
+    \item \textbf{Depositing items at target location:} 20 points for each required item deposited at the dorm room, 2 points for the toonie
+    \item \textbf{Solving the puzzle:} 10 points for talking to the friend and obtaining permission to enter locked rooms
+\end{itemize}
+
+\textbf{Maximum possible score:} 87 points
+\begin{itemize}
+    \item USB Drive: 5 + 20 = 25 points
+    \item Laptop Charger: 5 + 20 = 25 points
+    \item Lucky Mug: 5 + 20 = 25 points
+    \item Toonie: 1 + 2 = 3 points
+    \item Puzzle: 10 points
+    \item Total: 88 points
+\end{itemize}
+
+\subsection{First Location to Increase Score}
+
+The first location where a player can increase their score is \textbf{Location 7 (Robarts Library - Study Rooms 2F)} by picking up the USB Drive.
+
+\textbf{Commands to reach this location and increase score:}
+
+\begin{verbatim}
+go north
+go east
+go north
+go north
+go north
+take usb drive
+score
+\end{verbatim}
+
+\subsection{Code Implementation}
+
+\begin{itemize}
+    \item \textbf{File:} \texttt{adventure.py}
+    \item \textbf{Class/Method:} \texttt{AdventureGame.handle\_score\_command()} displays the current score and moves
+    \item \textbf{File:} \texttt{game\_entities.py}
+    \item \textbf{Class:} \texttt{Player} class maintains the \texttt{score} attribute
+    \item \textbf{Class/Method:} \texttt{Player.add\_score(points)} method adds points to the player's score
+    \item \textbf{File:} \texttt{adventure.py}
+    \item \textbf{Class/Method:} \texttt{AdventureGame.handle\_take\_command()} awards pickup points
+    \item \textbf{Class/Method:} \texttt{AdventureGame.handle\_drop\_command()} awards target points when items are deposited correctly
+    \item \textbf{Class/Method:} \texttt{AdventureGame.handle\_talk\_to\_friend()} awards puzzle completion points
+\end{itemize}
+
+\section{Enhancements}
+
+\subsection{Enhancement 1: Simple Puzzle - Talk to Friend}
+
+\textbf{Description:}
+
+The player must talk to their friend in the common room (Location 3) to obtain permission to enter the lecture hall (Location 12). Without this permission, the door to Location 12 is locked, and the player cannot retrieve the laptop charger, which is one of the three required items to win the game.
+
+\textbf{Steps to solve:}
 \begin{enumerate}
-    \item For Item 1:
-    \begin{itemize}
-    \item Item name:
-    \item Item start location ID:
-    \item Item target location ID:
-    \end{itemize}
-        \item For Item 2:
-    \begin{itemize}
-    \item Item name:
-    \item Item start location ID:
-    \item Item target location ID:
-    \end{itemize}
-        \item For Item 3:
-    \begin{itemize}
-    \item Item name:
-    \item Item start location ID:
-    \item Item target location ID:
-    \end{itemize}
-    % Copy-paste the above if you have more items, to list ALL items
+    \item Go to Location 3 (Chestnut Common Room)
+    \item Use the command \texttt{talk to friend}
+    \item The friend provides their student card, granting permission to enter locked rooms
+    \item The player can now enter Location 12 by using \texttt{go north} from Location 11
 \end{enumerate}
 
-    \item Exact command(s) that should be used to pick up an item (choose any one or more items for this example), and the command(s) used to use/drop the item (can copy the list you assigned to \texttt{inventory\_demo} in the \texttt{simulation.py} file)
-    \item Which parts of your code (file, class, function/method) are involved in handling the \texttt{inventory} command:
-\end{enumerate}
+\textbf{Complexity Level:} \textbf{Medium}
 
-\section*{Score}
-\begin{enumerate}
-
-    \item Briefly describe the way players can earn score in your game. Include the first location in which they can increase their score, and the exact list of command(s) leading up to the score increase:
-
-
-    \item Copy the list you assigned to \texttt{scores\_demo} in the \texttt{simulation.py} file into this section of the report:
-
-
-    \item Which parts of your code (file, class, function/method) are involved in handling the \texttt{score} functionality:
-\end{enumerate}
-
-\section*{Enhancements}
-\begin{enumerate}
-    \item Describe your enhancement \#1 here
+\textbf{Reasoning:}
+\begin{itemize}
+    \item This puzzle requires the player to:
     \begin{itemize}
-        \item Brief description of what the enhancement is (if it's a puzzle, also describe what steps the player must take to solve it):
-        \item Complexity level (choose from low/medium/high):
-        \item Reasons you believe this is the complexity level (e.g., mention implementation details, how much code did you have to add/change from the baseline, what challenges did you face, etc.)
-        \item Name the parts of the code which are involved in this enhancement
-        \item Copy the list you assigned to \texttt{enhancements\_demo} in the \texttt{simulation.py} file into this section of the report:
+        \item Discover that certain locations are inaccessible without permission
+        \item Find the friend in the common room (which is not on the direct path to any of the items)
+        \item Interact with the friend using a special command
+        \item Remember to use this permission later when trying to access the lecture hall
     \end{itemize}
+    \item Implementation required:
+    \begin{itemize}
+        \item Added a new \texttt{has\_friend\_permission} boolean attribute to the Player class
+        \item Created a special command handler \texttt{handle\_talk\_to\_friend()} in AdventureGame
+        \item Created a puzzle check handler \texttt{handle\_puzzle\_check()} that verifies permission before allowing entry
+        \item Modified the command processing logic to handle special ``action:puzzle'' and ``action:puzzle\_check'' command types
+        \item Added narrative dialogue and story elements
+    \end{itemize}
+    \item The puzzle is medium complexity because:
+    \begin{itemize}
+        \item It's not immediately obvious what to do (unlike simply picking up items)
+        \item It requires visiting multiple locations in a specific sequence
+        \item It gates access to a required item, making it essential to game completion
+        \item However, it doesn't require complex item combinations or timing
+    \end{itemize}
+\end{itemize}
 
-    % Uncomment below section if you have more enhancements; copy-paste as needed
-    %\item Describe your enhancement here
-    %\begin{itemize}
-    %    \item Basic description of what the enhancement is:
-    %    \item Complexity level (low/medium/high):
-    %    \item Reasons you believe this is the complexity level (e.g., mention implementation details)
-    %    \item Name the parts of the code which are involved in this enhancement
-    %    \item Copy the list you assigned to \texttt{enhancements\_demo} in the \texttt{simulation.py} file into this section of the report:
-    %\end{itemize}
-\end{enumerate}
+\textbf{Code Implementation:}
+\begin{itemize}
+    \item \textbf{File:} \texttt{game\_entities.py}
+    \item \textbf{Class:} \texttt{Player} class includes \texttt{has\_friend\_permission} attribute
+    \item \textbf{File:} \texttt{adventure.py}
+    \item \textbf{Class/Method:} \texttt{AdventureGame.handle\_talk\_to\_friend()} implements the puzzle interaction
+    \item \textbf{Class/Method:} \texttt{AdventureGame.handle\_puzzle\_check()} verifies permission before allowing entry to Location 12
+    \item \textbf{File:} \texttt{game\_data.json}
+    \item Location 3 includes \texttt{"talk to friend": "action:puzzle"} in available commands
+    \item Location 11 includes \texttt{"go north": "action:puzzle\_check"} to gate access to Location 12
+\end{itemize}
 
+\textbf{Demo Commands:}
+
+\begin{verbatim}
+go north
+go north
+talk to friend
+\end{verbatim}
+
+\subsection{Enhancement 2: Examine Command}
+
+\textbf{Description:}
+
+The examine command allows players to get detailed descriptions of items, either in their inventory or at their current location. This provides additional flavor text and helps players understand what items are and what they're used for.
+
+\textbf{How to use:}
+\begin{itemize}
+    \item \texttt{examine [item name]} - Shows a detailed description of the specified item
+    \item Works on items both in the player's inventory and at the current location
+    \item Provides more information than just seeing the item listed
+\end{itemize}
+
+\textbf{Complexity Level:} \textbf{Low-Medium}
+
+\textbf{Reasoning:}
+\begin{itemize}
+    \item This enhancement required:
+    \begin{itemize}
+        \item Adding a new command type to the game's command processing system
+        \item Creating a new handler method \texttt{handle\_examine\_command()} in AdventureGame
+        \item Implementing logic to check if an item is accessible (either in inventory or at current location)
+        \item Adding descriptive text for each item in the game data
+        \item Updating the available commands display to show examine options dynamically
+    \end{itemize}
+    \item The feature adds significant value:
+    \begin{itemize}
+        \item Enhances immersion and storytelling
+        \item Provides helpful information to players about items
+        \item Works seamlessly with the existing item system
+        \item Demonstrates good object-oriented design (Item objects have their own descriptions)
+    \end{itemize}
+    \item It's low-medium complexity because:
+    \begin{itemize}
+        \item The implementation is straightforward (checking locations and displaying text)
+        \item However, it required careful integration with the command system
+        \item It needed to handle both inventory items and location items correctly
+        \item The dynamic display of available examine commands required additional logic
+    \end{itemize}
+\end{itemize}
+
+\textbf{Code Implementation:}
+\begin{itemize}
+    \item \textbf{File:} \texttt{adventure.py}
+    \item \textbf{Class/Method:} \texttt{AdventureGame.handle\_examine\_command(item\_name)} implements the examine functionality
+    \item \textbf{File:} \texttt{game\_entities.py}
+    \item \textbf{Class:} \texttt{Item} class includes a \texttt{description} attribute for detailed item information
+    \item \textbf{File:} \texttt{game\_data.json}
+    \item Each item in the game data includes a detailed \texttt{description} field
+    \item Locations with items include \texttt{"examine [item]": "action:examine"} in available commands
+\end{itemize}
+
+\textbf{Demo Commands:}
+
+\begin{verbatim}
+go north
+go east
+go north
+go north
+go north
+examine usb drive
+take usb drive
+examine usb drive
+\end{verbatim}
+
+\section{Additional Notes}
+
+\subsection{Design Decisions}
+
+\begin{itemize}
+    \item \textbf{Move Limit:} Set to 35 moves to provide a reasonable challenge while still being achievable. The optimal solution requires about 35 moves, so players have some room for exploration without penalty.
+    
+    \item \textbf{Location Layout:} Based on actual UofT St. George campus geography, providing an authentic experience for students familiar with the campus.
+    
+    \item \textbf{Puzzle Design:} The friend puzzle was chosen to add a social element and narrative depth to the game, while not being overly complex.
+    
+    \item \textbf{Scoring System:} Designed to reward both progress (picking up items) and completion (depositing items at the dorm), with bonus points for solving the puzzle.
+\end{itemize}
+
+\subsection{Testing}
+
+All walkthroughs and demos have been tested using the \texttt{simulation.py} file and pass all assertions. The game has been verified to:
+\begin{itemize}
+    \item Allow winning by collecting all items and returning to the dorm
+    \item Properly enforce the move limit lose condition
+    \item Correctly handle inventory operations
+    \item Properly track and display scores
+    \item Successfully implement both enhancements
+\end{itemize}
 
 \end{document}
