@@ -2,23 +2,227 @@
   "locations": [
     {
       "id": 1,
-      "name": "Bahen 1F",
-      "brief_description": "You are on the first floor of the Bahen Center. There are elevators to the West, and an exit from the building to St. George street to the East. You see something shiny on the ground -- looks like a toonie?",
-      "long_description": "You are on the first floor of the Bahen Center. It's usually crowded at this time of the day, but today it's eerily quiet. Only a few students are studying at the table near the doors. You better not disturb them. One student is rushing down the corridor, wearing a heavy-looking backpack and carrying a textbook in their arms. There are elevators to the West, and an exit from the building to St. George street to the East.",
+      "name": "Dorm Room (Chestnut Residence)",
+      "brief_description": "LOCATION 1\nYou are in your dorm room at Chestnut Residence.",
+      "long_description": "LOCATION 1\nYou are in your cozy dorm room at Chestnut Residence. Your desk is cluttered with textbooks and notes from yesterday's marathon coding session. The clock on the wall shows you still have time before the 1pm deadline, but you need to find your missing items! You can go North to the hallway.",
+      "available_commands": {
+        "go north": 2
+      },
+      "items": []
+    },
+    {
+      "id": 2,
+      "name": "Chestnut Residence Hallway",
+      "brief_description": "LOCATION 2\nYou are in the hallway of Chestnut Residence.",
+      "long_description": "LOCATION 2\nYou are in the bright hallway of Chestnut Residence. Other students' doors line both sides. You can hear the faint sound of music from someone's room. To the South is your dorm room, to the North is the common room, and to the East is the building exit to St. George Street.",
+      "available_commands": {
+        "go south": 1,
+        "go north": 3,
+        "go east": 4
+      },
+      "items": []
+    },
+    {
+      "id": 3,
+      "name": "Chestnut Common Room",
+      "brief_description": "LOCATION 3\nYou are in the Chestnut Residence common room.",
+      "long_description": "LOCATION 3\nYou are in the Chestnut common room. There are comfortable couches and a TV. Your friend is sitting here, reading a book. They look up at you with a knowing smile - they remember you're supposed to be finishing the project! You can go South to return to the hallway.",
+      "available_commands": {
+        "go south": 2,
+        "talk to friend": "action:puzzle"
+      },
+      "items": []
+    },
+    {
+      "id": 4,
+      "name": "St. George Street (outside Chestnut)",
+      "brief_description": "LOCATION 4\nYou are on St. George Street outside Chestnut Residence.",
+      "long_description": "LOCATION 4\nYou are standing on St. George Street outside Chestnut Residence. The street is relatively quiet for a weekday morning. You can see Robarts Library to the North and the Bahen Center to the East. To the West you can go back into Chestnut Residence.",
+      "available_commands": {
+        "go west": 2,
+        "go north": 5,
+        "go east": 8
+      },
+      "items": []
+    },
+    {
+      "id": 5,
+      "name": "Robarts Library Entrance",
+      "brief_description": "LOCATION 5\nYou are at the entrance to Robarts Library.",
+      "long_description": "LOCATION 5\nYou are at the imposing entrance to Robarts Library. The brutalist architecture looms above you. Students are streaming in and out, carrying backpacks and coffee cups. You can enter the library to the North, or go back South to St. George Street.",
       "available_commands": {
         "go south": 4,
-        "go east": 2
+        "go north": 6
+      },
+      "items": []
+    },
+    {
+      "id": 6,
+      "name": "Robarts Library - First Floor",
+      "brief_description": "LOCATION 6\nYou are on the first floor of Robarts Library.",
+      "long_description": "LOCATION 6\nYou are on the first floor of Robarts Library. The main circulation desk is to your left, and study spaces stretch out before you. The quiet hum of students working fills the air. You can go up to the study rooms on the second floor to the North, or exit South.",
+      "available_commands": {
+        "go south": 5,
+        "go north": 7
+      },
+      "items": []
+    },
+    {
+      "id": 7,
+      "name": "Robarts Library - Study Rooms (2F)",
+      "brief_description": "LOCATION 7\nYou are in the study room area on the second floor of Robarts.",
+      "long_description": "LOCATION 7\nYou are in the study room area on Robarts' second floor. Individual study carrels line the windows. Wait - you spot your USB drive on one of the desks! You must have left it here yesterday when you were working on the project. You can go back down to the first floor by going South.",
+      "available_commands": {
+        "go south": 6,
+        "take usb drive": "action:take",
+        "examine usb drive": "action:examine"
+      },
+      "items": ["USB Drive"]
+    },
+    {
+      "id": 8,
+      "name": "Bahen Center - Front Entrance",
+      "brief_description": "LOCATION 8\nYou are at the front entrance of the Bahen Center.",
+      "long_description": "LOCATION 8\nYou are at the front entrance of the Bahen Center for Information Technology. Through the glass doors you can see students working on computers. The building houses many computer science labs and classrooms. You can go West to St. George Street, enter the building to the East, or head to Sidney Smith Hall to the South.",
+      "available_commands": {
+        "go west": 4,
+        "go east": 9,
+        "go south": 13
+      },
+      "items": []
+    },
+    {
+      "id": 9,
+      "name": "Bahen Center - First Floor",
+      "brief_description": "LOCATION 9\nYou are on the first floor of the Bahen Center.",
+      "long_description": "LOCATION 9\nYou are on the first floor of the Bahen Center. It's usually crowded at this time of the day, but today it's eerily quiet. Only a few students are studying at the tables near the doors. There are elevators and stairs to the North leading up, and the exit is to the West.",
+      "available_commands": {
+        "go west": 8,
+        "go north": 10
       },
       "items": ["toonie"]
+    },
+    {
+      "id": 10,
+      "name": "Bahen Center - Third Floor Labs",
+      "brief_description": "LOCATION 10\nYou are on the third floor of Bahen, near the computer labs.",
+      "long_description": "LOCATION 10\nYou are on the third floor of the Bahen Center, near the computer labs. The fluorescent lights flicker slightly overhead. You attended a lecture here yesterday! You can go South to go back downstairs, or continue East down the hallway.",
+      "available_commands": {
+        "go south": 9,
+        "go east": 11
+      },
+      "items": []
+    },
+    {
+      "id": 11,
+      "name": "Bahen Center - Lecture Hall BA3200",
+      "brief_description": "LOCATION 11\nYou are outside lecture hall BA3200.",
+      "long_description": "LOCATION 11\nYou are standing outside lecture hall BA3200 on the third floor. This is where you had your CS lecture yesterday while working on your project (oops). You remember sitting in the back row... maybe you left something there? You can enter the lecture hall to the North (if you have permission) or go West back to the hallway.",
+      "available_commands": {
+        "go west": 10,
+        "go north": "action:puzzle_check"
+      },
+      "items": []
+    },
+    {
+      "id": 12,
+      "name": "Lecture Hall BA3200 - Inside",
+      "brief_description": "LOCATION 12\nYou are inside lecture hall BA3200.",
+      "long_description": "LOCATION 12\nYou are inside the empty lecture hall BA3200. Rows of seats descend toward the front where the professor's desk and projector screen are located. You head to the back row where you were sitting yesterday and find your laptop charger plugged into the wall! Thank goodness! You can go South to exit the lecture hall.",
+      "available_commands": {
+        "go south": 11,
+        "take laptop charger": "action:take",
+        "examine laptop charger": "action:examine"
+      },
+      "items": ["Laptop Charger"]
+    },
+    {
+      "id": 13,
+      "name": "Sidney Smith Hall - Entrance",
+      "brief_description": "LOCATION 13\nYou are at the entrance to Sidney Smith Hall.",
+      "long_description": "LOCATION 13\nYou are at the entrance to Sidney Smith Hall, a large building housing humanities and social sciences. You can go East to enter the building or go back North to the Bahen Center.",
+      "available_commands": {
+        "go north": 8,
+        "go east": 14
+      },
+      "items": []
+    },
+    {
+      "id": 14,
+      "name": "Sidney Smith Hall - First Floor",
+      "brief_description": "LOCATION 14\nYou are on the first floor of Sidney Smith Hall.",
+      "long_description": "LOCATION 14\nYou are on the first floor of Sidney Smith Hall. The hallways are wide and well-lit. You can see Tim Hortons to the East - the smell of coffee is enticing! You can also go West to exit the building.",
+      "available_commands": {
+        "go west": 13,
+        "go east": 15
+      },
+      "items": []
+    },
+    {
+      "id": 15,
+      "name": "Tim Hortons (Sidney Smith)",
+      "brief_description": "LOCATION 15\nYou are at the Tim Hortons in Sidney Smith Hall.",
+      "long_description": "LOCATION 15\nYou are at the Tim Hortons on the first floor of Sidney Smith. The familiar aroma of coffee and donuts fills the air. A few students are in line ordering their morning caffeine fix. You worked here yesterday afternoon! Looking around, you spot a table in the corner - there's your lucky U of T mug sitting on it! You must have forgotten it when you packed up in a hurry. You can go West to leave the coffee shop.",
+      "available_commands": {
+        "go west": 14,
+        "take lucky mug": "action:take",
+        "examine lucky mug": "action:examine"
+      },
+      "items": ["Lucky Mug"]
+    },
+    {
+      "id": 16,
+      "name": "Gerstein Science Information Centre",
+      "brief_description": "LOCATION 16\nYou are at Gerstein Science Information Centre.",
+      "long_description": "LOCATION 16\nYou are at the Gerstein Science Information Centre, a science and health sciences library. The modern building has lots of natural light. You can go West to head back toward campus, or explore the quiet study spaces.",
+      "available_commands": {
+        "go west": 5
+      },
+      "items": []
     }
   ],
   "items": [
     {
+      "name": "USB Drive",
+      "description": "Your USB drive containing the only copy of your CS project game code. It's a small blue drive with a U of T sticker on it.",
+      "start_position": 7,
+      "target_position": 1,
+      "target_points": 20,
+      "pickup_points": 5
+    },
+    {
+      "name": "Laptop Charger",
+      "description": "Your laptop charger. Your laptop battery was at 5% - you desperately need this to finish the project!",
+      "start_position": 12,
+      "target_position": 1,
+      "target_points": 20,
+      "pickup_points": 5
+    },
+    {
+      "name": "Lucky Mug",
+      "description": "Your lucky U of T mug. It's accompanied you through every late-night study session and major deadline. The mug is dark blue with a gold U of T crest.",
+      "start_position": 15,
+      "target_position": 1,
+      "target_points": 20,
+      "pickup_points": 5
+    },
+    {
       "name": "toonie",
-      "description": "There is a toonie on the ground. Someone must have dropped it.",
-      "start_position": 1,
-      "target_position": 4,
-      "target_points": 5
+      "description": "A Canadian two-dollar coin lying on the ground. Someone must have dropped it.",
+      "start_position": 9,
+      "target_position": 1,
+      "target_points": 2,
+      "pickup_points": 1
     }
+  ],
+  "map": [
+    [-1, -1, 16, -1, -1],
+    [-1, 7, -1, -1, -1],
+    [-1, 6, -1, 12, -1],
+    [-1, 5, -1, 11, -1],
+    [13, 4, -1, 10, -1],
+    [14, 2, 8, 9, -1],
+    [15, 3, -1, -1, -1],
+    [-1, 1, -1, -1, -1]
   ]
 }
