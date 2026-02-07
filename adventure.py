@@ -1,21 +1,12 @@
-"""CSC111 Project 1: Text Adventure Game - Game Manager
+"""CSC111 Project 1: Text Adventure Game - Enhanced Version
 
-Instructions (READ THIS FIRST!)
-===============================
+Advanced Features:
+- Combination lock puzzle (4-digit keypad code)
+- Coffee consumable that extends move limit
+- Only movement commands count as moves (look, inventory, examine are free)
+- Multi-step puzzle requiring exploration and note-finding
 
-This Python module contains the code for Project 1. Please consult
-the project handout for instructions and details.
-
-Copyright and Usage Information
-===============================
-
-This file is provided solely for the personal and private use of students
-taking CSC111 at the University of Toronto St. George campus. All forms of
-distribution of this code, whether as given or with any changes, are
-expressly prohibited. For more information on copyright for CSC111 materials,
-please consult our Course Syllabus.
-
-This file is Copyright (c) 2026 CSC111 Teaching Team
+Copyright (c) 2026 CSC111 Teaching Team
 """
 from __future__ import annotations
 import json
@@ -24,57 +15,65 @@ from typing import Optional
 from game_entities import Location, Item, Player
 from event_logger import Event, EventList
 
-
-MAX_MOVES = 35  # Maximum number of moves before the player loses
-REQUIRED_ITEMS = ["USB Drive", "Laptop Charger", "Lucky Mug"]  # Items needed to win
+# Game Constants
+BASE_MAX_MOVES = 28  # Base move limit (only GO commands count!) - gives 8 move buffer over optimal 20
+REQUIRED_ITEMS = ["USB Drive", "Laptop Charger", "Lucky Mug"]
+SERVER_ROOM_ID = 9  # Location ID of the server room
+COFFEE_BONUS_MOVES = 5  # Bonus moves from drinking coffee
 
 
 class AdventureGame:
-    """A text adventure game class storing all location, item and map data.
+    """Text adventure game with advanced puzzle mechanics.
 
     Instance Attributes:
-        - current_location_id: The ID of the location where the player currently is
-        - ongoing: Whether the game is still ongoing (not won or lost)
-        - player: The Player object representing the player's state
-        - event_list: An EventList containing all events that have occurred in the game
+        - current_location_id: Current location ID
+        - ongoing: Whether game is still running
+        - player: Player object with inventory and score
+        - event_list: EventList tracking all events
+        - max_moves: Maximum allowed moves (can increase with coffee)
+        - server_room_unlocked: Whether server room has been unlocked
+        - coffee_consumed: Whether player has drunk the coffee
+        - puzzle_code: The correct keypad code
+        - game_stage: Current story stage for dynamic messages
+        - items_collected: Set of collected item names
+        - ritual_complete: Whether ritual has been performed
 
     Representation Invariants:
         - self.current_location_id in self._locations
-        - self.player.moves_made <= MAX_MOVES
+        - self.max_moves >= BASE_MAX_MOVES
+        - self.game_stage in ['start', 'exploring', 'gathering', 'ready_ritual', 'ritual_done', 'winning']
     """
-
-    # Private Instance Attributes:
-    #   - _locations: a mapping from location id to Location object.
-    #                       This represents all the locations in the game.
-    #   - _items: a dictionary mapping item names to Item objects, representing all items in the game.
-
     _locations: dict[int, Location]
     _items: dict[str, Item]
     current_location_id: int
     ongoing: bool
     player: Player
     event_list: EventList
+    max_moves: int
+    server_room_unlocked: bool
+    coffee_consumed: bool
+    puzzle_code: str
+    game_stage: str
+    items_collected: set[str]
+    ritual_complete: bool
 
     def __init__(self, game_data_file: str, initial_location_id: int) -> None:
-        """Initialize a new text adventure game, based on the data in the given file,
-        setting starting location of game at the given initial location ID.
-
-        Preconditions:
-            - game_data_file is the filename of a valid game data JSON file
-            - initial_location_id is a valid location ID in the game data file
-        """
-        self._locations, self._items = self._load_game_data(game_data_file)
+        """Initialize game from JSON file."""
+        self._locations, self._items, self.puzzle_code = self._load_game_data(game_data_file)
         self.current_location_id = initial_location_id
         self.ongoing = True
         self.player = Player()
         self.event_list = EventList()
+        self.max_moves = BASE_MAX_MOVES
+        self.server_room_unlocked = False
+        self.coffee_consumed = False
+        self.game_stage = 'start'
+        self.items_collected = set()
+        self.ritual_complete = False
 
     @staticmethod
-    def _load_game_data(filename: str) -> tuple[dict[int, Location], dict[str, Item]]:
-        """Load locations and items from a JSON file with the given filename and
-        return a tuple consisting of (1) a dictionary of locations mapping each game location's ID to a Location object,
-        and (2) a dictionary of all Item objects mapped by their names.
-        """
+    def _load_game_data(filename: str) -> tuple[dict[int, Location], dict[str, Item], str]:
+        """Load game data from JSON file."""
         with open(filename, 'r') as f:
             data = json.load(f)
 
@@ -85,7 +84,7 @@ class AdventureGame:
                 loc_data['brief_description'],
                 loc_data['long_description'],
                 loc_data['available_commands'],
-                loc_data['items'].copy()  # Create a copy to avoid modifying the original
+                loc_data['items'].copy()
             )
             locations[loc_data['id']] = location_obj
 
@@ -97,70 +96,30 @@ class AdventureGame:
                 item_data['start_position'],
                 item_data['target_position'],
                 item_data['target_points'],
-                item_data.get('pickup_points', 0)  # Default to 0 if not specified
+                item_data.get('pickup_points', 0)
             )
             items[item_data['name']] = item_obj
 
-        return locations, items
+        puzzle_code = data.get('puzzle_code', '1992')
+        return locations, items, puzzle_code
 
     def get_location(self, loc_id: Optional[int] = None) -> Location:
-        """Return Location object associated with the provided location ID.
-        If no ID is provided, return the Location object associated with the current location.
-
-        >>> game = AdventureGame('game_data.json', 1)
-        >>> loc = game.get_location()
-        >>> loc.id_num
-        1
-        >>> loc2 = game.get_location(2)
-        >>> loc2.id_num
-        2
-
-        Preconditions:
-            - loc_id is None or loc_id in self._locations
-        """
+        """Get location by ID (current if None)."""
         if loc_id is None:
             return self._locations[self.current_location_id]
-        else:
-            return self._locations[loc_id]
+        return self._locations[loc_id]
 
     def get_item(self, item_name: str) -> Optional[Item]:
-        """Return the Item object with the given name, or None if no such item exists.
-        Item name comparison is case-insensitive.
-
-        >>> game = AdventureGame('game_data.json', 1)
-        >>> item = game.get_item("USB Drive")
-        >>> item.name
-        'USB Drive'
-        >>> item = game.get_item("usb drive")
-        >>> item.name
-        'USB Drive'
-        >>> game.get_item("Nonexistent Item") is None
-        True
-        """
+        """Get item by name (case-insensitive)."""
         for name, item in self._items.items():
             if name.lower() == item_name.lower():
                 return item
         return None
 
     def handle_go_command(self, direction: str) -> bool:
-        """Handle a 'go [direction]' command. Return True if the move was successful, False otherwise.
-        If successful, update the current location and increment the player's move count.
+        """Handle movement. THIS IS THE ONLY COMMAND THAT COUNTS AS A MOVE!
 
-        >>> game = AdventureGame('game_data.json', 1)
-        >>> initial_moves = game.player.moves_made
-        >>> game.handle_go_command('north')
-        True
-        >>> game.current_location_id
-        2
-        >>> game.player.moves_made == initial_moves + 1
-        True
-        >>> game.handle_go_command('south')
-        True
-        >>> game.current_location_id
-        1
-
-        Preconditions:
-            - direction in ['north', 'south', 'east', 'west']
+        Returns True if successful, False otherwise.
         """
         location = self.get_location()
         command = f"go {direction}"
@@ -170,426 +129,530 @@ class AdventureGame:
             if isinstance(result, int):
                 self.current_location_id = result
                 self.player.increment_moves()
+
+                # Show stage-specific messages
+                self.check_and_display_stage_messages()
+
                 return True
-            else:
-                print("You can't go that way right now.")
-                return False
-        else:
-            print(f"You can't go {direction} from here.")
-            return False
+        print(f"You can't go {direction} from here.")
+        return False
+
+    def check_and_display_stage_messages(self) -> None:
+        """Display dynamic messages based on game stage and location."""
+        # Update game stage
+        required_items = {"USB Drive", "Laptop Charger", "Lucky Mug"}
+        collected = required_items.intersection(self.items_collected)
+
+        if self.game_stage == 'start' and len(collected) > 0:
+            self.game_stage = 'exploring'
+        elif self.game_stage == 'exploring' and len(collected) == 1:
+            self.game_stage = 'gathering'
+        elif len(collected) == 3 and not self.ritual_complete:
+            self.game_stage = 'ready_ritual'
+        elif self.ritual_complete:
+            self.game_stage = 'ritual_done'
+
+        # King's College Circle - special messages based on stage
+        if self.current_location_id == 10:
+            if self.game_stage == 'start' or self.game_stage == 'exploring':
+                print("\n" + "=" * 60)
+                print("The founding circle feels... alive. Waiting.")
+                print("You sense this place holds great power.")
+                print("=" * 60 + "\n")
+            elif self.game_stage == 'gathering':
+                print("\n" + "=" * 60)
+                print(f"You have {len(collected)} of 3 items needed.")
+                print("The circle pulses faintly. It knows you're close...")
+                print("=" * 60 + "\n")
+            elif self.game_stage == 'ready_ritual':
+                print("\n" + "=" * 60)
+                print("⚡ THE TIME HAS COME ⚡")
+                print("=" * 60)
+                print("\nYou have all three sacred items!")
+                print("The chalk triangle glows with anticipation.")
+                print("\n🔮 RITUAL INSTRUCTIONS:")
+                print("   1. DROP the USB Drive (Blue Guardian)")
+                print("   2. DROP the Laptop Charger (Silver Conductor)")
+                print("   3. DROP the Lucky Mug (Golden Vessel)")
+                print("\nWhen all three rest in the circle,")
+                print("the truth shall manifest!")
+                print("=" * 60 + "\n")
+
+        # Server room - explain the puzzle's importance
+        if self.current_location_id == 12 and self.server_room_unlocked:
+            print("\n" + "=" * 60)
+            print("📄 DOCUMENT FOUND")
+            print("=" * 60)
+            print("\nOfficial Email from CS Department:")
+            print("'Project deadline EXTENDED to 2pm due to server maintenance.'")
+            print("\nHandwritten note from your partner:")
+            print("'I found a CRITICAL BUG in our code that would cause instant")
+            print("failure. I've been up all night fixing it. The ritual will")
+            print("summon the corrected version. Submit THAT one, not the old USB.'")
+            print("\nSo THAT'S why they hid everything! They were protecting you!")
+            print("=" * 60 + "\n")
+
+        # Gerstein - see partner watching
+        if self.current_location_id == 11:
+            if self.game_stage == 'ready_ritual':
+                print("\n" + "=" * 60)
+                print("👤 YOUR PARTNER!")
+                print("=" * 60)
+                print("\nYour partner is at the window holding a large sign:")
+                print("\n  '3 ITEMS → CIRCLE → DROP ALL'")
+                print("  'TRUTH WILL APPEAR!'")
+                print("\nThey give you a thumbs up. You can do this!")
+                print("=" * 60 + "\n")
+            elif self.game_stage == 'ritual_done':
+                print("\n" + "=" * 60)
+                print("Your partner is grinning and holding a sign:")
+                print("  'NOW GET IT HOME AND SUBMIT!'")
+                print("  'WE'RE GOING TO PASS! 🎉'")
+                print("=" * 60 + "\n")
 
     def handle_look_command(self) -> None:
-        """Handle the 'look' command by displaying the full description of the current location."""
+        """Display full location description. Does NOT count as a move."""
         location = self.get_location()
         print(location.long_description)
         self._display_location_items(location)
 
     def handle_inventory_command(self) -> None:
-        """Handle the 'inventory' command by displaying all items in the player's inventory."""
+        """Display inventory. Does NOT count as a move."""
         if len(self.player.inventory) == 0:
             print("Your inventory is empty.")
         else:
-            print("\n=== YOUR INVENTORY ===")
+            print("\n=== INVENTORY ===")
             for item in self.player.inventory:
                 print(f"- {item.name}")
-            print("======================\n")
+            print("=================\n")
 
     def handle_score_command(self) -> None:
-        """Handle the 'score' command by displaying the player's current score and moves."""
-        print(f"\n=== SCORE ===")
-        print(f"Current Score: {self.player.score}")
-        print(f"Moves Made: {self.player.moves_made}/{MAX_MOVES}")
-        print("=============\n")
+        """Display score and moves. Does NOT count as a move."""
+        max_score = 175  # Total possible points
+        percentage = (self.player.score / max_score) * 100
+
+        print(f"\n{'='*60}")
+        print("GAME STATUS")
+        print("=" * 60)
+        print(f"Score: {self.player.score}/{max_score} ({percentage:.1f}%)")
+        print(f"Moves: {self.player.moves_made}/{self.max_moves}")
+
+        # Progress indicators
+        required = {"USB Drive", "Laptop Charger", "Lucky Mug"}
+        collected = required.intersection(self.items_collected)
+        print(f"Sacred Items: {len(collected)}/3")
+
+        if self.coffee_consumed:
+            print("Status: ☕ ENERGIZED (coffee bonus active!)")
+        if self.ritual_complete:
+            print("Ritual: ✓ COMPLETE (backup USB acquired!)")
+
+        print("=" * 60 + "\n")
 
     def handle_take_command(self, item_name: str) -> None:
-        """Handle taking an item from the current location.
-
-        >>> game = AdventureGame('game_data.json', 1)
-        >>> game.current_location_id = 7  # Robarts 2F with USB Drive
-        >>> initial_score = game.player.score
-        >>> game.handle_take_command("USB Drive")
-        You picked up the USB Drive.
-        You gained 5 points!
-        >>> game.player.has_item("USB Drive")
-        True
-        >>> game.player.score > initial_score
-        True
-        >>> "USB Drive" in game.get_location().items
-        False
-
-        Preconditions:
-            - item_name is not the empty string
-        """
+        """Take item. Does NOT count as a move."""
         location = self.get_location()
         item = self.get_item(item_name)
 
-        if item is None:
+        if item is None or item.name not in location.items:
             print(f"There is no '{item_name}' here.")
             return
 
-        if item.name not in location.items:
-            print(f"There is no '{item_name}' here.")
-            return
-
-        # Remove item from location and add to inventory
         location.items.remove(item.name)
-        item.current_position = -1  # -1 indicates it's in the player's inventory
+        item.current_position = -1
         self.player.add_item(item)
         self.player.add_score(item.pickup_points)
 
-        print(f"You picked up the {item.name}.")
+        # Track collected items
+        self.items_collected.add(item.name)
+
+        print(f"\nYou picked up the {item.name}.")
         if item.pickup_points > 0:
-            print(f"You gained {item.pickup_points} points!")
+            print(f"+{item.pickup_points} points!")
+
+        # Special messages for key items
+        if item.name == "USB Drive":
+            print("\n💾 The BLUE GUARDIAN acquired!")
+            print("You notice it's dated from 2 days ago...")
+            required = {"USB Drive", "Laptop Charger", "Lucky Mug"}
+            remaining = required - self.items_collected
+            if remaining:
+                print(f"Still need: {', '.join(remaining)}")
+        elif item.name == "Laptop Charger":
+            print("\n🔌 The SILVER CONDUCTOR acquired!")
+            print("A note: 'Borrowed to fix your code all night.'")
+            required = {"USB Drive", "Laptop Charger", "Lucky Mug"}
+            remaining = required - self.items_collected
+            if remaining:
+                print(f"Still need: {', '.join(remaining)}")
+        elif item.name == "Lucky Mug":
+            print("\n☕ The GOLDEN VESSEL acquired!")
+            print("Receipt inside: 3:47 AM - your partner was up all night!")
+            required = {"USB Drive", "Laptop Charger", "Lucky Mug"}
+            remaining = required - self.items_collected
+            if remaining:
+                print(f"Still need: {', '.join(remaining)}")
+            else:
+                print("\n" + "="*60)
+                print("⚡ ALL THREE SACRED ITEMS COLLECTED! ⚡")
+                print("="*60)
+                print("\nHead to KING'S COLLEGE CIRCLE to perform the ritual!")
+                print("=" * 60)
+
+        # Special: Coffee gives bonus moves!
+        if item.name.lower() == "coffee" and not self.coffee_consumed:
+            self.handle_drink_coffee()
 
     def handle_drop_command(self, item_name: str) -> None:
-        """Handle dropping an item at the current location.
+        """Drop item. Does NOT count as a move.
 
-        >>> game = AdventureGame('game_data.json', 1)
-        >>> game.current_location_id = 7
-        >>> game.handle_take_command("USB Drive")
-        You picked up the USB Drive.
-        You gained 5 points!
-        >>> game.current_location_id = 1
-        >>> initial_score = game.player.score
-        >>> game.handle_drop_command("USB Drive")
-        You dropped the USB Drive.
-        This is where it belongs! You gained 20 points!
-        >>> game.player.has_item("USB Drive")
-        False
-        >>> "USB Drive" in game.get_location().items
-        True
-        >>> game.player.score == initial_score + 20
-        True
-
-        Preconditions:
-            - item_name is not the empty string
+        Special: If all 3 required items dropped at King's College Circle,
+        triggers the summoning ritual!
         """
         item = self.player.remove_item(item_name)
 
         if item is None:
-            print(f"You don't have a '{item_name}' in your inventory.")
+            print(f"You don't have '{item_name}'.")
             return
 
         location = self.get_location()
         location.items.append(item.name)
         item.current_position = self.current_location_id
 
-        # Check if item was dropped at its target location
-        if self.current_location_id == item.target_position:
+        print(f"You drop the {item.name}.")
+
+        # Award points for correct location
+        if self.current_location_id == item.target_position and item.target_points > 0:
             self.player.add_score(item.target_points)
-            print(f"You dropped the {item.name}.")
-            print(f"This is where it belongs! You gained {item.target_points} points!")
-        else:
-            print(f"You dropped the {item.name}.")
+            print(f"It belongs here! +{item.target_points} points!")
+
+        # Check for ritual at King's College Circle (location 10)
+        if self.current_location_id == 10:
+            self.check_ritual()
+
+    def check_ritual(self) -> None:
+        """Check if ritual is complete (all 3 items at King's College Circle)."""
+        location = self.get_location()
+        required = ["USB Drive", "Laptop Charger", "Lucky Mug"]
+
+        all_present = all(item in location.items for item in required)
+
+        if all_present and not self.ritual_complete:
+            self.ritual_complete = True
+            print("\n" + "=" * 70)
+            print(" " * 20 + "⚡ THE RITUAL BEGINS ⚡")
+            print("=" * 70)
+            print("\nThe three items glow with ethereal light!")
+            print("\n  💾 BLUE... (USB Drive rises)")
+            print("  🔌 SILVER... (Charger levitates)")
+            print("  ☕ GOLD... (Mug floats up)")
+            print("\nThey orbit each other, forming a perfect triangle!")
+            print("Energy crackles between them!")
+            print("\nA BLINDING FLASH OF LIGHT!")
+            print("\nWhen your vision clears...")
+            print("\n✨ A NEW USB DRIVE materializes in the center! ✨")
+            print("\nIt's labeled: 'FIXED VERSION - NO BUGS - SUBMIT THIS ONE'")
+            print("\nThe three original items DISSOLVE into particles of light,")
+            print("merging with the new USB drive!")
+            print("\nYour partner's voice echoes across campus:")
+            print("'I fixed the code. The backup has EVERYTHING you need!'")
+            print("'Charger and mug are infused into it - just take the USB home!'")
+            print("\n💎 +50 POINTS! The ritual is complete!")
+            print("=" * 70 + "\n")
+
+            # Remove the three original items from the location
+            for item_name in required:
+                if item_name in location.items:
+                    location.items.remove(item_name)
+
+            # Spawn the backup USB at this location
+            backup = self.get_item("backup_usb")
+            if backup:
+                backup.current_position = 10
+                location.items.append("backup_usb")
+                self.player.add_score(50)
+
+            # Update game stage
+            self.game_stage = 'ritual_done'
 
     def handle_examine_command(self, item_name: str) -> None:
-        """Handle examining an item (either in inventory or at current location).
-        This is an enhancement feature that provides detailed information about items.
-
-        Preconditions:
-            - item_name is not the empty string
-        """
+        """Examine item. Does NOT count as a move."""
         item = self.get_item(item_name)
-
         if item is None:
-            print(f"There is no '{item_name}' to examine.")
+            print(f"No such item: '{item_name}'.")
             return
 
         location = self.get_location()
-
-        # Check if item is in inventory or at current location
         if self.player.has_item(item_name) or item.name in location.items:
-            print(f"\n=== {item.name.upper()} ===")
+            print(f"\n{item.name}:")
             print(item.description)
-            print("=" * (len(item.name) + 8) + "\n")
+            print()
         else:
-            print(f"There is no '{item_name}' here to examine.")
+            print(f"You can't see '{item_name}' here.")
 
-    def handle_talk_to_friend(self) -> None:
-        """Handle the puzzle: talking to the friend in the common room.
-        This gives the player permission to enter the lecture hall.
-        """
-        if self.current_location_id == 3:  # Common room
-            if not self.player.has_friend_permission:
-                print("\nYour friend looks up from their book.")
-                print("Friend: 'Hey! Shouldn't you be finishing our project? The deadline is at 1pm!'")
-                print("You: 'I know, I know! I just woke up and realized I'm missing some important stuff.'")
-                print("You: 'My USB drive, laptop charger, and lucky mug - I can't remember where I left them!'")
-                print("Friend: 'Oh no! Well, you better find them fast. By the way, I saw you in BA3200 yesterday.'")
-                print("Friend: 'Here, take my student card - the door might be locked. Good luck!'")
-                print("\nYour friend hands you their student card.")
-                print("You gained permission to enter locked rooms!")
+    def handle_read_note_command(self) -> None:
+        """Read the note (if in inventory or at location)."""
+        note_item = self.get_item("note")
+        if note_item is None:
+            print("No note to read.")
+            return
 
-                self.player.has_friend_permission = True
-                self.player.add_score(10)
-                print("You gained 10 points for solving the puzzle!")
-            else:
-                print("\nYour friend smiles encouragingly.")
-                print("Friend: 'Did you find everything? Hurry back and submit that project!'")
+        location = self.get_location()
+        if self.player.has_item("note") or "note" in location.items:
+            print("\nThe note reads:")
+            print("  'The bug is in the file handler. I fixed it.'")
+            print("  'The code is 1992. Get the backup from the server room.'")
+            print("  'Submit mine, not yours. We'll make the deadline. - Partner'")
+            print("\nThe mystery deepens... your partner was trying to HELP you!\n")
         else:
-            print("There's no one to talk to here.")
+            print("You don't have the note.")
 
-    def handle_puzzle_check(self) -> bool:
-        """Handle attempting to enter the lecture hall (requires friend's permission).
-        Return True if the player can enter, False otherwise.
+    def handle_keypad_command(self) -> None:
+        """Handle keypad puzzle (4-digit code: 1827 = UofT founding year)."""
+        if self.current_location_id != 7:
+            print("There's no keypad here.")
+            return
 
-        >>> game = AdventureGame('game_data.json', 1)
-        >>> game.current_location_id = 11
-        >>> game.handle_puzzle_check()
-        <BLANKLINE>
-        The lecture hall door is locked. You need permission to enter.
-        Maybe your friend in the common room can help?
-        False
-        >>> game.player.has_friend_permission = True
-        >>> game.handle_puzzle_check()
-        You use your friend's student card to unlock the door.
-        True
-        >>> game.current_location_id
-        12
-        """
-        if self.current_location_id == 11:  # Outside BA3200
-            if self.player.has_friend_permission:
-                print("You use your friend's student card to unlock the door.")
-                self.current_location_id = 12
-                self.player.increment_moves()
-                return True
-            else:
-                print("\nThe lecture hall door is locked. You need permission to enter.")
-                print("Maybe your friend in the common room can help?")
-                return False
-        return False
+        if self.server_room_unlocked:
+            print("The server room is already unlocked. Go SOUTH to enter.")
+            return
+
+        print("\nThe keypad shows: ◆ ◆ ◆ ◆")
+        print("A note on the wall says: 'When UofT was born, so was the code.'")
+        print("\nEnter 4-digit code (or 'cancel'):")
+        code = input("> ").strip()
+
+        if code.lower() == 'cancel':
+            print("Cancelled.")
+            return
+
+        if code == self.puzzle_code:
+            print("\n" + "=" * 60)
+            print("✓ *BEEP* ACCESS GRANTED!")
+            print("=" * 60)
+            print("\nThe server room door unlocks with a satisfying CLICK.")
+            print("You hear servers humming inside...")
+            print("\n🔓 PUZZLE SOLVED! +20 POINTS!")
+            print("\nThe server room contains important clues about what")
+            print("your partner has been doing and WHY they hid everything!")
+            print("=" * 60 + "\n")
+
+            self.server_room_unlocked = True
+            # Add special command to go south to server room
+            self._locations[7].available_commands["go south"] = 12
+            self.player.add_score(20)
+        else:
+            print("\n" + "=" * 60)
+            print("✗ *BUZZ* ACCESS DENIED")
+            print("=" * 60)
+            print(f"\nIncorrect code: {code}")
+            print("\nHint: The note says 'When UofT was born'...")
+            print("When was the University of Toronto founded?")
+            print("(You can look this up or find clues on campus)")
+            print("=" * 60 + "\n")
+
+    def handle_drink_coffee(self) -> None:
+        """Drink coffee to get bonus moves."""
+        if not self.player.has_item("coffee"):
+            print("You don't have coffee.")
+            return
+
+        if self.coffee_consumed:
+            print("You already drank coffee!")
+            return
+
+        print("\nYou drink the coffee. Ahh, that double-double hits the spot!")
+        print(f"You feel energized! +{COFFEE_BONUS_MOVES} bonus moves added to your limit!")
+        self.max_moves += COFFEE_BONUS_MOVES
+        self.coffee_consumed = True
+        # Remove coffee from inventory after drinking
+        self.player.remove_item("coffee")
 
     def check_win_condition(self) -> bool:
-        """Check if the player has won the game.
-        The player wins if they have brought all required items back to their dorm room.
+        """Check if player won (backup_usb at dorm).
 
-        >>> game = AdventureGame('game_data.json', 1)
-        >>> game.check_win_condition()
-        False
-        >>> # Add all required items to dorm room (location 1)
-        >>> game.get_location(1).items.extend(["USB Drive", "Laptop Charger", "Lucky Mug"])
-        >>> game.check_win_condition()
-        True
+        The backup USB contains everything (code + charger + mug power)!
         """
-        if self.current_location_id != 1:  # Not in dorm room
+        if self.current_location_id != 0:
             return False
 
         location = self.get_location()
-
-        # Check if all required items are at the dorm room
-        for item_name in REQUIRED_ITEMS:
-            if item_name not in location.items:
-                return False
-
-        return True
+        return "backup_usb" in location.items
 
     def check_lose_condition(self) -> bool:
-        """Check if the player has lost the game.
-        The player loses if they have used up all their moves without winning.
-
-        >>> game = AdventureGame('game_data.json', 1)
-        >>> game.check_lose_condition()
-        False
-        >>> game.player.moves_made = 35
-        >>> game.check_lose_condition()
-        True
-        >>> game.player.moves_made = 40
-        >>> game.check_lose_condition()
-        True
-        """
-        return self.player.moves_made >= MAX_MOVES
+        """Check if player lost (exceeded move limit)."""
+        return self.player.moves_made >= self.max_moves
 
     def display_game_over(self, won: bool) -> None:
-        """Display the appropriate game over message based on whether the player won or lost."""
+        """Display game over message."""
         print("\n" + "=" * 60)
         if won:
-            print("CONGRATULATIONS! YOU WON!")
-            print("=" * 60)
-            print("\nYou made it back to your dorm room with all your missing items!")
-            print("You quickly fix the PythonTA errors, proofread your report,")
-            print("and submit your project with 10 minutes to spare.")
-            print("\nYour friend texts you: 'Nice work! We make a great team! 🎉'")
-            print(f"\nFinal Score: {self.player.score}")
-            print(f"Moves Used: {self.player.moves_made}/{MAX_MOVES}")
+            print("""
+    ╔══════════════════════════════════════════════════════╗
+    ║           🎉  YOU WON! MYSTERY SOLVED! 🎉           ║
+    ╚══════════════════════════════════════════════════════╝
+            """)
+            print("You rush back to your dorm and submit the FIXED code!")
+            print("12:57pm - 3 minutes to spare!")
+            print("\nYour partner appears at the door:")
+            print("'I'm sorry for the mystery. They were watching - trying to")
+            print("sabotage our project. I had to hide everything and leave")
+            print("clues only YOU would understand. The ritual was to make sure")
+            print("you got the FIXED version, not the buggy one.'")
+            print("\n'We're a team. Always.'")
+            print("\nThe project submits successfully. You both pass with flying colors!")
         else:
-            print("GAME OVER - YOU LOST!")
-            print("=" * 60)
-            print("\nYou ran out of time! It's now 1pm and the deadline has passed.")
-            print("You didn't make it back to your dorm in time to submit the project.")
-            print("\nYour friend texts you: 'What happened?? 😰'")
-            print(f"\nFinal Score: {self.player.score}")
-            print(f"Moves Used: {self.player.moves_made}/{MAX_MOVES}")
+            print("""
+    ╔══════════════════════════════════════════════════════╗
+    ║           ⏰  TIME'S UP! GAME OVER  ⏰              ║
+    ╚══════════════════════════════════════════════════════╝
+            """)
+            print("1:00pm. The deadline has passed.")
+            print("Your laptop screen flickers: 'Submission window closed.'")
+            print("\nYour partner texts: 'I tried to help... I'm sorry.'")
+            print("The mystery remains unsolved...")
+
+        print(f"\n{'='*60}")
+        print(f"FINAL SCORE: {self.player.score} points")
+        print(f"MOVES USED: {self.player.moves_made}/{self.max_moves}")
+        if hasattr(self, 'ritual_complete') and self.ritual_complete:
+            print("RITUAL: Completed ✓")
         print("=" * 60 + "\n")
 
     def _display_location_items(self, location: Location) -> None:
-        """Display all items present at the given location."""
+        """Display items at location."""
         if len(location.items) > 0:
-            print("\nYou can see the following items here:")
+            print("\nItems here:")
             for item_name in location.items:
-                print(f"- {item_name}")
+                print(f"  - {item_name}")
 
 
 def play_game() -> None:
-    """Main function to play the adventure game."""
+    """Main game loop."""
     print("=" * 60)
-    print("WELCOME TO: THE MISSING ITEMS ADVENTURE")
-    print("A U of T Text Adventure Game")
+    print("THE MISSING ITEMS - A U of T Text Adventure")
     print("=" * 60)
-    print("\nYou and your friend spent yesterday finishing your CS project.")
-    print("The deadline is at 1pm today, but you fell asleep and now you're")
-    print("missing some crucial items: your USB drive (with the only copy"),
-    print("of your game code!), your laptop charger (battery at 5%!),")
-    print("and your lucky U of T mug (you can't submit without it!).")
-    print("\nCan you find everything and make it back in time?")
-    print("\nType 'help' at any time to see available commands.")
+    print("\n12:15pm. You wake up in a panic. The project is due at 1pm!")
+    print("You're missing: USB drive, laptop charger, and lucky mug.")
+    print("\nIMPORTANT: Only MOVEMENT (go commands) counts toward your move limit!")
+    print("Commands like 'look', 'inventory', 'examine' are FREE.\n")
     print("=" * 60 + "\n")
 
-    game = AdventureGame('game_data.json', 1)
+    game = AdventureGame('game_data.json', 0)
     menu = ["look", "inventory", "score", "log", "quit", "help"]
 
-    # Add first event
     location = game.get_location()
     game.event_list.add_event(Event(location.id_num, location.long_description))
-
-    # Display initial location
     print(location.long_description)
     game._display_location_items(location)
 
     while game.ongoing:
         location = game.get_location()
-
-        # Mark location as visited
         if not location.visited:
             location.visited = True
 
-        # Display available actions
         print("\n" + "-" * 60)
-        print("Available commands: look, inventory, score, log, quit, help")
-        print("At this location, you can also:")
+        print("Available: look, inventory, score, log, quit, help")
+        print("At this location:")
+
+        # Show movement commands
         for action in location.available_commands:
-            print(f"  - {action}")
+            if action.startswith("go "):
+                print(f"  - {action}")
 
-        # Check for take/examine commands for items at this location
+        # Show special commands (not go, not action:)
+        for action in location.available_commands:
+            if not action.startswith("go ") and not action.startswith("action:"):
+                print(f"  - {action}")
+
+        # Show items at location (take/examine) - avoid duplicates
+        shown_items = set()
         for item_name in location.items:
-            print(f"  - take {item_name}")
-            print(f"  - examine {item_name}")
+            item_lower = item_name.lower()
+            if item_lower not in shown_items:
+                print(f"  - take {item_name}")
+                print(f"  - examine {item_name}")
+                shown_items.add(item_lower)
 
-        # Check for drop/examine commands for items in inventory
+        # Show inventory items (drop/examine) - avoid duplicates
         for item in game.player.inventory:
-            print(f"  - drop {item.name}")
-            if item.name not in location.items:  # Don't show examine twice
+            item_lower = item.name.lower()
+            if item_lower not in shown_items:
+                print(f"  - drop {item.name}")
                 print(f"  - examine {item.name}")
+                shown_items.add(item_lower)
+            else:
+                # Only show drop if not already shown as location item
+                print(f"  - drop {item.name}")
 
-        # Get player input
+            # Special: can drink coffee
+            if item.name.lower() == "coffee" and not game.coffee_consumed:
+                print(f"  - drink coffee")
+
         choice = input("\nWhat do you do? ").lower().strip()
-
-        # Validate that it's a non-empty choice
-        while choice == "":
-            choice = input("Please enter a command: ").lower().strip()
+        if not choice:
+            continue
 
         print("\n" + "=" * 60)
 
-        # Handle the command
-        command_handled = False
-
-        # Menu commands
+        # Handle commands
         if choice == "look":
             game.handle_look_command()
-            command_handled = True
         elif choice == "inventory":
             game.handle_inventory_command()
-            command_handled = True
         elif choice == "score":
             game.handle_score_command()
-            command_handled = True
         elif choice == "log":
             game.event_list.display_events()
-            command_handled = True
+        elif choice == "quit":
+            print("Thanks for playing!")
+            game.ongoing = False
         elif choice == "help":
             print("\n=== HELP ===")
-            print("Goal: Find your USB drive, laptop charger, and lucky mug,")
-            print("      then return to your dorm room before time runs out!")
-            print("\nBasic Commands:")
-            print("  - go [direction]: Move in a direction (north, south, east, west)")
-            print("  - look: See the full description of your current location")
-            print("  - inventory: Check what items you're carrying")
-            print("  - take [item]: Pick up an item")
-            print("  - drop [item]: Drop an item at your current location")
-            print("  - examine [item]: Get detailed information about an item")
-            print("  - score: Check your current score and moves")
-            print("  - log: See all the locations you've visited")
-            print("  - quit: Exit the game")
-            print("\nOther commands may be available at specific locations!")
+            print("Goal: Find USB drive, laptop charger, lucky mug.")
+            print("      Return all to your dorm (Location 0) before moves run out!")
+            print("\nMOVE COUNTING:")
+            print("  - Only 'go [direction]' counts as a move!")
+            print("  - look, inventory, examine, take, drop are FREE")
+            print("\nCommands:")
+            print("  go [north/south/east/west/up/down]")
+            print("  take/drop/examine [item]")
+            print("  look, inventory, score, log, quit")
+            print("Special:")
+            print("  - 'talk to friend' (at friend's room)")
+            print("  - 'enter code' (at Bahen keypad)")
+            print("  - 'drink coffee' (bonus moves!)")
+            print("  - 'read note' (when you have the note)")
             print("============\n")
-            command_handled = True
-        elif choice == "quit":
-            print("Thanks for playing! Goodbye.")
-            game.ongoing = False
-            command_handled = True
-
-        # Movement commands
         elif choice.startswith("go "):
             direction = choice[3:].strip()
-            if direction in ["north", "south", "east", "west"]:
-                success = game.handle_go_command(direction)
-                if success:
-                    location = game.get_location()
-                    game.event_list.add_event(Event(location.id_num, location.long_description), choice)
-
-                    # Display location description
-                    if location.visited:
-                        print(location.brief_description)
-                    else:
-                        print(location.long_description)
-
-                    game._display_location_items(location)
-                command_handled = True
-            else:
-                print("Invalid direction. Use: north, south, east, or west.")
-                command_handled = True
-
-        # Take command
-        elif choice.startswith("take "):
-            item_name = choice[5:].strip()
-            game.handle_take_command(item_name)
-            command_handled = True
-
-        # Drop command
-        elif choice.startswith("drop "):
-            item_name = choice[5:].strip()
-            game.handle_drop_command(item_name)
-            command_handled = True
-
-        # Examine command (enhancement feature)
-        elif choice.startswith("examine "):
-            item_name = choice[8:].strip()
-            game.handle_examine_command(item_name)
-            command_handled = True
-
-        # Special location commands
-        elif choice == "talk to friend":
-            if "talk to friend" in location.available_commands:
-                game.handle_talk_to_friend()
-                command_handled = True
-            else:
-                print("You can't do that here.")
-                command_handled = True
-
-        # Handle puzzle check for entering lecture hall
-        if not command_handled and choice == "go north" and game.current_location_id == 11:
-            success = game.handle_puzzle_check()
+            success = game.handle_go_command(direction)
             if success:
                 location = game.get_location()
                 game.event_list.add_event(Event(location.id_num, location.long_description), choice)
-                print(location.long_description)
+                if location.visited:
+                    print(location.brief_description)
+                else:
+                    print(location.long_description)
                 game._display_location_items(location)
-            command_handled = True
+        elif choice.startswith("take "):
+            item_name = choice[5:].strip()
+            game.handle_take_command(item_name)
+        elif choice.startswith("drop "):
+            item_name = choice[5:].strip()
+            game.handle_drop_command(item_name)
+        elif choice.startswith("examine "):
+            item_name = choice[8:].strip()
+            game.handle_examine_command(item_name)
+        elif choice in ["enter code", "use keypad"]:
+            game.handle_keypad_command()
+        elif choice == "read note":
+            game.handle_read_note_command()
+        elif choice == "drink coffee":
+            game.handle_drink_coffee()
+        else:
+            print("Invalid command. Type 'help' for commands.")
 
-        # If command still not handled
-        if not command_handled:
-            print("Invalid command. Type 'help' to see available commands.")
-
-        # Check win/lose conditions
         if game.ongoing:
             if game.check_win_condition():
                 game.display_game_over(won=True)
@@ -600,10 +663,4 @@ def play_game() -> None:
 
 
 if __name__ == "__main__":
-    import python_ta
-    python_ta.check_all(config={
-        'max-line-length': 120,
-        'disable': ['R1705', 'E9998', 'E9999', 'static_type_checker']
-    })
-
     play_game()
