@@ -1,228 +1,197 @@
 {
   "locations": [
     {
-      "id": 1,
-      "name": "Dorm Room (Chestnut Residence)",
-      "brief_description": "LOCATION 1\nYou are in your dorm room at Chestnut Residence.",
-      "long_description": "LOCATION 1\nYou are in your cozy dorm room at Chestnut Residence. Your desk is cluttered with textbooks and notes from yesterday's marathon coding session. The clock on the wall shows you still have time before the 1pm deadline, but you need to find your missing items! You can go North to the hallway.",
+      "id": 0,
+      "name": "Your Dorm Room - Chestnut Residence",
+      "brief_description": "LOCATION 0\nYour dorm room.",
+      "long_description": "LOCATION 0 - Your Dorm Room (Chestnut Residence)\n\nYou wake up gasping. 11:45am. Project due at 1pm. Your USB drive, charger, and lucky mug are GONE.\n\nYour laptop screen glows with a message: 'They're watching. I hid your items. Follow the riddles. Arrange them in the circle when you find all three. Only then will the truth appear. - Your Partner'\n\nWhat truth? What's happening?\n\nExit: EAST to hallway",
       "available_commands": {
-        "go north": 2
+        "go east": 1
       },
       "items": []
     },
     {
+      "id": 1,
+      "name": "Chestnut Hallway",
+      "brief_description": "LOCATION 1\nChestnut hallway.",
+      "long_description": "LOCATION 1 - Chestnut Hallway\n\nThe hallway is empty. Too empty. A COFFEE cup sits on the floor with a note: 'DRINK ME to see beyond the deadline. The first item waits where knowledge sleeps in stacks.' A riddle!\n\nExits: WEST (your room), NORTH (outside to campus)",
+      "available_commands": {
+        "go west": 0,
+        "go north": 2
+      },
+      "items": ["coffee"]
+    },
+    {
       "id": 2,
-      "name": "Chestnut Residence Hallway",
-      "brief_description": "LOCATION 2\nYou are in the hallway of Chestnut Residence.",
-      "long_description": "LOCATION 2\nYou are in the bright hallway of Chestnut Residence. Other students' doors line both sides. You can hear the faint sound of music from someone's room. To the South is your dorm room, to the North is the common room, and to the East is the building exit to St. George Street.",
+      "name": "Outside Chestnut - Campus Path",
+      "brief_description": "LOCATION 2\nOutside Chestnut.",
+      "long_description": "LOCATION 2 - Outside Chestnut Residence\n\nYou step outside. King's College Circle is to the NORTH. You can return SOUTH to Chestnut.\n\nA crow watches you from a tree. Eerie.\n\nExits: SOUTH (Chestnut), NORTH (King's College Circle)",
       "available_commands": {
         "go south": 1,
-        "go north": 3,
-        "go east": 4
+        "go north": 10
       },
       "items": []
     },
     {
       "id": 3,
-      "name": "Chestnut Common Room",
-      "brief_description": "LOCATION 3\nYou are in the Chestnut Residence common room.",
-      "long_description": "LOCATION 3\nYou are in the Chestnut common room. There are comfortable couches and a TV. Your friend is sitting here, reading a book. They look up at you with a knowing smile - they remember you're supposed to be finishing the project! You can go South to return to the hallway.",
+      "name": "Sidney Smith Hall",
+      "brief_description": "LOCATION 3\nSidney Smith Hall.",
+      "long_description": "LOCATION 3 - Sidney Smith Hall\n\nThe humanities building. Shadows move in corners. Tim Hortons is INSIDE to the WEST. Robarts Library is to the NORTH. Bahen Center is to the SOUTH. St. George Street is EAST.\n\nExits: WEST (Tim Hortons), NORTH (Robarts), SOUTH (Bahen), EAST (St. George)",
       "available_commands": {
-        "go south": 2,
-        "talk to friend": "action:puzzle"
+        "go west": 9,
+        "go north": 5,
+        "go south": 7,
+        "go east": 4
       },
       "items": []
     },
     {
       "id": 4,
-      "name": "St. George Street (outside Chestnut)",
-      "brief_description": "LOCATION 4\nYou are on St. George Street outside Chestnut Residence.",
-      "long_description": "LOCATION 4\nYou are standing on St. George Street outside Chestnut Residence. The street is relatively quiet for a weekday morning. You can see Robarts Library to the North and the Bahen Center to the East. To the West you can go back into Chestnut Residence.",
+      "name": "St. George Street (North)",
+      "brief_description": "LOCATION 4\nSt. George Street.",
+      "long_description": "LOCATION 4 - St. George Street (North Section)\n\nThe main campus road. Robarts Library looms to the WEST. Sidney Smith Hall is WEST as well (through the path).\n\nA chalk mark on the ground: Three points make truth visible.\n\nExits: WEST (Sidney Smith)",
       "available_commands": {
-        "go west": 2,
-        "go north": 5,
-        "go east": 8
+        "go west": 3
       },
       "items": []
     },
     {
       "id": 5,
-      "name": "Robarts Library Entrance",
-      "brief_description": "LOCATION 5\nYou are at the entrance to Robarts Library.",
-      "long_description": "LOCATION 5\nYou are at the imposing entrance to Robarts Library. The brutalist architecture looms above you. Students are streaming in and out, carrying backpacks and coffee cups. You can enter the library to the North, or go back South to St. George Street.",
+      "name": "Robarts Library - Ground Floor",
+      "brief_description": "LOCATION 5\nRobarts ground floor.",
+      "long_description": "LOCATION 5 - Robarts Library - Ground Floor\n\nThe fortress of knowledge. A librarian whispers: 'Your partner left something UP in the stacks. They seemed... frightened. Mentioned a ritual?'\n\nExits: SOUTH (Sidney Smith), UP (upper stacks)",
       "available_commands": {
-        "go south": 4,
-        "go north": 6
+        "go south": 3,
+        "go up": 6
       },
       "items": []
     },
     {
       "id": 6,
-      "name": "Robarts Library - First Floor",
-      "brief_description": "LOCATION 6\nYou are on the first floor of Robarts Library.",
-      "long_description": "LOCATION 6\nYou are on the first floor of Robarts Library. The main circulation desk is to your left, and study spaces stretch out before you. The quiet hum of students working fills the air. You can go up to the study rooms on the second floor to the North, or exit South.",
+      "name": "Robarts Library - Upper Stacks",
+      "brief_description": "LOCATION 6\nRobarts upper stacks.",
+      "long_description": "LOCATION 6 - Robarts Library - Upper Stacks\n\nRows of books. YOUR USB DRIVE sits on a desk with a riddle: 'When three relics rest in the founding circle, the fourth shall manifest. The BLUE GUARDIAN holds the key.' What does that mean?\n\nExit: DOWN (ground floor)",
       "available_commands": {
-        "go south": 5,
-        "go north": 7
-      },
-      "items": []
-    },
-    {
-      "id": 7,
-      "name": "Robarts Library - Study Rooms (2F)",
-      "brief_description": "LOCATION 7\nYou are in the study room area on the second floor of Robarts.",
-      "long_description": "LOCATION 7\nYou are in the study room area on Robarts' second floor. Individual study carrels line the windows. Wait - you spot your USB drive on one of the desks! You must have left it here yesterday when you were working on the project. You can go back down to the first floor by going South.",
-      "available_commands": {
-        "go south": 6,
-        "take usb drive": "action:take",
-        "examine usb drive": "action:examine"
+        "go down": 5
       },
       "items": ["USB Drive"]
     },
     {
-      "id": 8,
-      "name": "Bahen Center - Front Entrance",
-      "brief_description": "LOCATION 8\nYou are at the front entrance of the Bahen Center.",
-      "long_description": "LOCATION 8\nYou are at the front entrance of the Bahen Center for Information Technology. Through the glass doors you can see students working on computers. The building houses many computer science labs and classrooms. You can go West to St. George Street, enter the building to the East, or head to Sidney Smith Hall to the South.",
+      "id": 7,
+      "name": "Bahen Center - Ground Floor",
+      "brief_description": "LOCATION 7\nBahen ground floor.",
+      "long_description": "LOCATION 7 - Bahen Center - Ground Floor\n\nCS building. Students work frantically. A LOCKED SERVER ROOM is to the SOUTH. A keypad shows symbols: ◆ ◆ ◆ ◆. Lecture halls are UP. King's College Circle is to the EAST.\n\nA note pinned to wall: 'When UofT was born, so was the code.'\n\nExits: NORTH (Sidney Smith), UP (lecture halls), EAST (King's College Circle), SOUTH (server room - locked)",
       "available_commands": {
-        "go west": 4,
-        "go east": 9,
-        "go south": 13
+        "go north": 3,
+        "go up": 8,
+        "go east": 10,
+        "enter code": "action:keypad"
       },
       "items": []
     },
     {
-      "id": 9,
-      "name": "Bahen Center - First Floor",
-      "brief_description": "LOCATION 9\nYou are on the first floor of the Bahen Center.",
-      "long_description": "LOCATION 9\nYou are on the first floor of the Bahen Center. It's usually crowded at this time of the day, but today it's eerily quiet. Only a few students are studying at the tables near the doors. There are elevators and stairs to the North leading up, and the exit is to the West.",
+      "id": 8,
+      "name": "Bahen Lecture Hall BA3200",
+      "brief_description": "LOCATION 8\nLecture hall BA3200.",
+      "long_description": "LOCATION 8 - BA3200 Lecture Hall\n\nYour usual lecture hall. YOUR LAPTOP CHARGER is in the back row with a note: 'The SILVER CONDUCTOR must join the circle. Two items call for the third.'\n\nExit: DOWN (ground floor)",
       "available_commands": {
-        "go west": 8,
-        "go north": 10
+        "go down": 7
       },
-      "items": ["toonie"]
+      "items": ["Laptop Charger"]
+    },
+    {
+      "id": 9,
+      "name": "Tim Hortons - Sidney Smith",
+      "brief_description": "LOCATION 9\nTim Hortons.",
+      "long_description": "LOCATION 9 - Tim Hortons (Sidney Smith Hall)\n\nThe coffee shop. YOUR LUCKY MUG sits on a table with the final riddle: 'The GOLDEN VESSEL completes the trinity. Bring all three to where founders walked. Drop them in pattern. Truth awaits.'\n\nExit: EAST (Sidney Smith)",
+      "available_commands": {
+        "go east": 3
+      },
+      "items": ["Lucky Mug"]
     },
     {
       "id": 10,
-      "name": "Bahen Center - Third Floor Labs",
-      "brief_description": "LOCATION 10\nYou are on the third floor of Bahen, near the computer labs.",
-      "long_description": "LOCATION 10\nYou are on the third floor of the Bahen Center, near the computer labs. The fluorescent lights flicker slightly overhead. You attended a lecture here yesterday! You can go South to go back downstairs, or continue East down the hallway.",
+      "name": "King's College Circle",
+      "brief_description": "LOCATION 10\nKing's College Circle.",
+      "long_description": "LOCATION 10 - King's College Circle\n\nThe FOUNDING CIRCLE of UofT. The green lawn is eerily still. Bahen Center is to the WEST. Gerstein Library is to the EAST. Chestnut is to the SOUTH.\n\nThree chalk marks form a triangle on the ground. This is where the ritual happens!\n\nExits: WEST (Bahen), EAST (Gerstein), SOUTH (Chestnut)",
       "available_commands": {
-        "go south": 9,
-        "go east": 11
+        "go west": 7,
+        "go east": 11,
+        "go south": 2
       },
       "items": []
     },
     {
       "id": 11,
-      "name": "Bahen Center - Lecture Hall BA3200",
-      "brief_description": "LOCATION 11\nYou are outside lecture hall BA3200.",
-      "long_description": "LOCATION 11\nYou are standing outside lecture hall BA3200 on the third floor. This is where you had your CS lecture yesterday while working on your project (oops). You remember sitting in the back row... maybe you left something there? You can enter the lecture hall to the North (if you have permission) or go West back to the hallway.",
+      "name": "Gerstein Science Library",
+      "brief_description": "LOCATION 11\nGerstein Library.",
+      "long_description": "LOCATION 11 - Gerstein Science Library\n\nThe science library. Through the window, you see someone watching you. They hold up a sign: 'DROP THE THREE IN THE CIRCLE. TRUTH WILL APPEAR.'\n\nYour partner! They're guiding you!\n\nExit: WEST (King's College Circle)",
       "available_commands": {
-        "go west": 10,
-        "go north": "action:puzzle_check"
+        "go west": 10
       },
       "items": []
     },
     {
       "id": 12,
-      "name": "Lecture Hall BA3200 - Inside",
-      "brief_description": "LOCATION 12\nYou are inside lecture hall BA3200.",
-      "long_description": "LOCATION 12\nYou are inside the empty lecture hall BA3200. Rows of seats descend toward the front where the professor's desk and projector screen are located. You head to the back row where you were sitting yesterday and find your laptop charger plugged into the wall! Thank goodness! You can go South to exit the lecture hall.",
+      "name": "Bahen Server Room",
+      "brief_description": "LOCATION 12\nServer room.",
+      "long_description": "LOCATION 12 - Bahen Server Room\n\nServers hum. You find a printed document: 'Project deadline EXTENDED to 2pm - system maintenance. Also: Critical bug found in your code. I fixed it. The backup will appear when you complete the ritual. - Partner'\n\nThey were protecting you!\n\nExit: NORTH (Bahen ground)",
       "available_commands": {
-        "go south": 11,
-        "take laptop charger": "action:take",
-        "examine laptop charger": "action:examine"
+        "go north": 7
       },
-      "items": ["Laptop Charger"]
-    },
-    {
-      "id": 13,
-      "name": "Sidney Smith Hall - Entrance",
-      "brief_description": "LOCATION 13\nYou are at the entrance to Sidney Smith Hall.",
-      "long_description": "LOCATION 13\nYou are at the entrance to Sidney Smith Hall, a large building housing humanities and social sciences. You can go East to enter the building or go back North to the Bahen Center.",
-      "available_commands": {
-        "go north": 8,
-        "go east": 14
-      },
-      "items": []
-    },
-    {
-      "id": 14,
-      "name": "Sidney Smith Hall - First Floor",
-      "brief_description": "LOCATION 14\nYou are on the first floor of Sidney Smith Hall.",
-      "long_description": "LOCATION 14\nYou are on the first floor of Sidney Smith Hall. The hallways are wide and well-lit. You can see Tim Hortons to the East - the smell of coffee is enticing! You can also go West to exit the building.",
-      "available_commands": {
-        "go west": 13,
-        "go east": 15
-      },
-      "items": []
-    },
-    {
-      "id": 15,
-      "name": "Tim Hortons (Sidney Smith)",
-      "brief_description": "LOCATION 15\nYou are at the Tim Hortons in Sidney Smith Hall.",
-      "long_description": "LOCATION 15\nYou are at the Tim Hortons on the first floor of Sidney Smith. The familiar aroma of coffee and donuts fills the air. A few students are in line ordering their morning caffeine fix. You worked here yesterday afternoon! Looking around, you spot a table in the corner - there's your lucky U of T mug sitting on it! You must have forgotten it when you packed up in a hurry. You can go West to leave the coffee shop.",
-      "available_commands": {
-        "go west": 14,
-        "take lucky mug": "action:take",
-        "examine lucky mug": "action:examine"
-      },
-      "items": ["Lucky Mug"]
-    },
-    {
-      "id": 16,
-      "name": "Gerstein Science Information Centre",
-      "brief_description": "LOCATION 16\nYou are at Gerstein Science Information Centre.",
-      "long_description": "LOCATION 16\nYou are at the Gerstein Science Information Centre, a science and health sciences library. The modern building has lots of natural light. You can go West to head back toward campus, or explore the quiet study spaces.",
-      "available_commands": {
-        "go west": 5
-      },
-      "items": []
+      "items": ["clue_paper"]
     }
   ],
   "items": [
     {
       "name": "USB Drive",
-      "description": "Your USB drive containing the only copy of your CS project game code. It's a small blue drive with a U of T sticker on it.",
-      "start_position": 7,
-      "target_position": 1,
-      "target_points": 20,
+      "description": "BLUE USB drive with U of T sticker. The BLUE GUARDIAN. Contains your project code, but your partner mentioned a bug...",
+      "start_position": 6,
+      "target_position": 10,
+      "target_points": 0,
       "pickup_points": 5
     },
     {
       "name": "Laptop Charger",
-      "description": "Your laptop charger. Your laptop battery was at 5% - you desperately need this to finish the project!",
-      "start_position": 12,
-      "target_position": 1,
-      "target_points": 20,
+      "description": "Silver laptop charger. The SILVER CONDUCTOR. Your partner borrowed it to work all night fixing your code.",
+      "start_position": 8,
+      "target_position": 10,
+      "target_points": 0,
       "pickup_points": 5
     },
     {
       "name": "Lucky Mug",
-      "description": "Your lucky U of T mug. It's accompanied you through every late-night study session and major deadline. The mug is dark blue with a gold U of T crest.",
-      "start_position": 15,
-      "target_position": 1,
-      "target_points": 20,
+      "description": "Gold-crested U of T mug. The GOLDEN VESSEL. Your partner used it during their all-night debugging session.",
+      "start_position": 9,
+      "target_position": 10,
+      "target_points": 0,
       "pickup_points": 5
     },
     {
-      "name": "toonie",
-      "description": "A Canadian two-dollar coin lying on the ground. Someone must have dropped it.",
-      "start_position": 9,
-      "target_position": 1,
-      "target_points": 2,
-      "pickup_points": 1
+      "name": "coffee",
+      "description": "Warm coffee with note: 'DRINK ME to see beyond the deadline.' Gives you extra time (+5 moves).",
+      "start_position": 1,
+      "target_position": -1,
+      "target_points": 0,
+      "pickup_points": 0
+    },
+    {
+      "name": "clue_paper",
+      "description": "Official document: 'Project deadline EXTENDED to 2pm - server maintenance.' Plus your partner's handwritten note: 'Found CRITICAL BUG that would cause instant failure. Fixed it overnight. The ritual will summon the corrected version with everything you need. Submit THAT version, not the old buggy USB. - Your Partner'",
+      "start_position": 12,
+      "target_position": -1,
+      "target_points": 0,
+      "pickup_points": 15
+    },
+    {
+      "name": "backup_usb",
+      "description": "FIXED USB drive that appears after ritual! This is the corrected version your partner created. Submit THIS one!",
+      "start_position": -1,
+      "target_position": 0,
+      "target_points": 100,
+      "pickup_points": 50
     }
   ],
-  "map": [
-    [-1, -1, 16, -1, -1],
-    [-1, 7, -1, -1, -1],
-    [-1, 6, -1, 12, -1],
-    [-1, 5, -1, 11, -1],
-    [13, 4, -1, 10, -1],
-    [14, 2, 8, 9, -1],
-    [15, 3, -1, -1, -1],
-    [-1, 1, -1, -1, -1]
-  ]
+  "puzzle_code": "1827",
+  "ritual_complete": false
 }
