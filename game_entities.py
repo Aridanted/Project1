@@ -63,10 +63,11 @@ class Item:
 
     Representation Invariants:
         - self.name != ''
-        - self.start_position >= 0
-        - self.target_position >= 0
+        - self.start_position >= -1
+        - self.target_position >= -1
         - self.target_points >= 0
         - self.pickup_points >= 0
+        - self.current_position >= -1
     """
 
     name: str
@@ -78,7 +79,10 @@ class Item:
     current_position: int = -1
 
     def __post_init__(self) -> None:
-        """Initialize the current position to the starting position if not already set."""
+        """Initialize the current position to the starting position if not already set.
+        A start_position of -1 means the item does not exist in the world at game start
+        (it will be spawned dynamically during gameplay).
+        """
         if self.current_position == -1:
             self.current_position = self.start_position
 
@@ -231,4 +235,3 @@ if __name__ == "__main__":
         'max-line-length': 120,
         'disable': ['R1705', 'E9998', 'E9999', 'static_type_checker']
     })
- 
