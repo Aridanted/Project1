@@ -19,7 +19,9 @@
         "go west": 0,
         "go north": 2
       },
-      "items": ["coffee"]
+      "items": [
+        "coffee"
+      ]
     },
     {
       "id": 2,
@@ -74,18 +76,19 @@
       "available_commands": {
         "go down": 5
       },
-      "items": ["USB Drive"]
+      "items": [
+        "USB Drive"
+      ]
     },
     {
       "id": 7,
       "name": "Bahen Center - Ground Floor",
       "brief_description": "LOCATION 7\nBahen ground floor.",
-      "long_description": "LOCATION 7 - Bahen Center - Ground Floor\n\nCS building. Students work frantically. A LOCKED SERVER ROOM is to the SOUTH. A keypad shows symbols: ◆ ◆ ◆ ◆. Lecture halls are UP. King's College Circle is to the EAST.\n\nA note pinned to wall: 'When UofT was born, so was the code.'\n\nExits: NORTH (Sidney Smith), UP (lecture halls), EAST (King's College Circle), SOUTH (server room - locked)",
+      "long_description": "LOCATION 7 - Bahen Center - Ground Floor\n\nCS building. Students work frantically. A LOCKED SERVER ROOM is to the SOUTH. A keypad shows symbols: \u25c6 \u25c6 \u25c6 \u25c6. Lecture halls are UP. King's College Circle is to the EAST.\n\nA note pinned to wall: 'When UofT was born, so was the code.'\n\nExits: NORTH (Sidney Smith), UP (lecture halls), EAST (King's College Circle), SOUTH (server room - locked)",
       "available_commands": {
         "go north": 3,
         "go up": 8,
-        "go east": 10,
-        "enter code": "action:keypad"
+        "go east": 10
       },
       "items": []
     },
@@ -97,7 +100,9 @@
       "available_commands": {
         "go down": 7
       },
-      "items": ["Laptop Charger"]
+      "items": [
+        "Laptop Charger"
+      ]
     },
     {
       "id": 9,
@@ -107,7 +112,9 @@
       "available_commands": {
         "go east": 3
       },
-      "items": ["Lucky Mug"]
+      "items": [
+        "Lucky Mug"
+      ]
     },
     {
       "id": 10,
@@ -139,7 +146,9 @@
       "available_commands": {
         "go north": 7
       },
-      "items": ["clue_paper"]
+      "items": [
+        "clue_paper"
+      ]
     }
   ],
   "items": [
@@ -147,24 +156,24 @@
       "name": "USB Drive",
       "description": "BLUE USB drive with U of T sticker. The BLUE GUARDIAN. Contains your project code, but your partner mentioned a bug...",
       "start_position": 6,
-      "target_position": 10,
-      "target_points": 0,
+      "target_position": 0,
+      "target_points": 30,
       "pickup_points": 5
     },
     {
       "name": "Laptop Charger",
       "description": "Silver laptop charger. The SILVER CONDUCTOR. Your partner borrowed it to work all night fixing your code.",
       "start_position": 8,
-      "target_position": 10,
-      "target_points": 0,
+      "target_position": 0,
+      "target_points": 30,
       "pickup_points": 5
     },
     {
       "name": "Lucky Mug",
       "description": "Gold-crested U of T mug. The GOLDEN VESSEL. Your partner used it during their all-night debugging session.",
       "start_position": 9,
-      "target_position": 10,
-      "target_points": 0,
+      "target_position": 0,
+      "target_points": 30,
       "pickup_points": 5
     },
     {
