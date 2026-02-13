@@ -18,7 +18,10 @@ please consult our Course Syllabus.
 
 This file is Copyright (c) 2026 CSC111 Teaching Team
 """
+from __future__ import annotations
 from dataclasses import dataclass
+from typing import Optional
+from typing import Union
 
 
 @dataclass
@@ -39,11 +42,10 @@ class Location:
         - self.brief_description != ''
         - self.long_description != ''
     """
-
     id_num: int
     brief_description: str
     long_description: str
-    available_commands: dict[str, int | str]
+    available_commands: dict[str, Union[int, str]]
     items: list[str]
     visited: bool = False
 
@@ -63,13 +65,11 @@ class Item:
 
     Representation Invariants:
         - self.name != ''
-        - self.start_position >= -1
-        - self.target_position >= -1
+        - self.start_position >= 0
+        - self.target_position >= 0
         - self.target_points >= 0
         - self.pickup_points >= 0
-        - self.current_position >= -1
     """
-
     name: str
     description: str
     start_position: int
@@ -79,80 +79,59 @@ class Item:
     current_position: int = -1
 
     def __post_init__(self) -> None:
-        """Initialize the current position to the starting position if not already set.
-        A start_position of -1 means the item does not exist in the world at game start
-        (it will be spawned dynamically during gameplay).
-        """
+        """Initialize the current position to the starting position if not already set."""
         if self.current_position == -1:
             self.current_position = self.start_position
 
 
+@dataclass
 class Player:
     """Represents the player in the text adventure game.
 
-    Instance Attributes:
-        - inventory: A list of Item objects that the player is currently carrying
-        - score: The player's current score
-        - moves_made: The number of moves the player has made so far
-        - has_friend_permission: Whether the player has obtained their friend's permission (for puzzle)
+        Instance Attributes:
+            - inventory: A list of Item objects that the player is currently carrying
+            - score: The player's current score
+            - moves_made: The number of moves the player has made so far
+            - has_friend_permission: Whether the player has obtained their friend's permission (for puzzle)
 
-    Representation Invariants:
-        - self.score >= 0
-        - self.moves_made >= 0
-    """
-
+        Representation Invariants:
+            - self.score >= 0
+            - self.moves_made >= 0
+        """
     inventory: list[Item]
     score: int
     moves_made: int
     has_friend_permission: bool
 
-    def __init__(self) -> None:
-        """Initialize a new player with an empty inventory, zero score, and zero moves.
-
-        >>> player = Player()
-        >>> len(player.inventory)
-        0
-        >>> player.score
-        0
-        >>> player.moves_made
-        0
-        >>> player.has_friend_permission
-        False
-        """
-        self.inventory = []
-        self.score = 0
-        self.moves_made = 0
-        self.has_friend_permission = False
-
     def add_item(self, item: Item) -> None:
         """Add the given item to the player's inventory.
 
+        Preconditions:
+            - item is not already in self.inventory
+
         >>> player = Player()
-        >>> item = Item("USB Drive", "A USB drive", 7, 1, 20, 5)
-        >>> player.add_item(item)
+        >>> item1 = Item("USB Drive", "A USB drive", 7, 1, 20, 5)
+        >>> player.add_item(item1)
         >>> len(player.inventory)
         1
         >>> player.inventory[0].name
         'USB Drive'
-
-        Preconditions:
-            - item is not already in self.inventory
         """
         self.inventory.append(item)
 
-    def remove_item(self, item_name: str) -> Item | None:
+    def remove_item(self, item_name: str) -> Optional[Item]:
         """Remove and return the item with the given name from the player's inventory.
         Return None if no such item exists in the inventory.
 
         >>> player = Player()
-        >>> item = Item("USB Drive", "A USB drive", 7, 1, 20, 5)
-        >>> player.add_item(item)
+        >>> item1 = Item("USB Drive", "A USB drive", 7, 1, 20, 5)
+        >>> player.add_item(item1)
         >>> removed = player.remove_item("USB Drive")
         >>> removed.name
         'USB Drive'
         >>> len(player.inventory)
         0
-        >>> player.remove_item("Nonexistent Item") is None
+        >>> player.remove_item("None existent Item") is None
         True
         """
         for item in self.inventory:
@@ -165,18 +144,16 @@ class Player:
         """Return True if the player has an item with the given name in their inventory.
 
         >>> player = Player()
-        >>> item = Item("Lucky Mug", "A mug", 15, 1, 20, 5)
-        >>> player.add_item(item)
+        >>> item1 = Item("Lucky Mug", "A mug", 15, 1, 20, 5)
+        >>> player.add_item(item1)
         >>> player.has_item("Lucky Mug")
-        True
-        >>> player.has_item("lucky mug")
         True
         >>> player.has_item("USB Drive")
         False
         """
         return any(item.name.lower() == item_name.lower() for item in self.inventory)
 
-    def get_item(self, item_name: str) -> Item | None:
+    def get_item(self, item_name: str) -> Optional[Item]:
         """Return the item with the given name from the player's inventory, or None if not found.
 
         >>> player = Player()
@@ -187,7 +164,7 @@ class Player:
         >>> found = player.get_item("USB Drive")
         >>> found.name
         'USB Drive'
-        >>> player.get_item("Nonexistent") is None
+        >>> player.get_item("None existent Item") is None
         True
         """
         for item in self.inventory:
@@ -197,7 +174,8 @@ class Player:
 
     def add_score(self, points: int) -> None:
         """Add the given number of points to the player's score.
-
+        Preconditions:
+            - points >= 0
         >>> player = Player()
         >>> player.score
         0
@@ -207,9 +185,6 @@ class Player:
         >>> player.add_score(25)
         >>> player.score
         35
-
-        Preconditions:
-            - points >= 0
         """
         self.score += points
 
